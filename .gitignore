@@ -129,5 +129,6 @@ dmypy.json
 .pyre/
 
 Datos/
+CleanData/
 *csv
 .DS_Store
