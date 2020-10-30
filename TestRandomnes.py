@@ -8,6 +8,22 @@ import pandas as pd
 import datetime as dt
 from scipy import stats
 
+def CompareNormStandar(Statistical, significance, tails=1):
+    """
+    Compare an statistical of any test with the normal standar
+    INPUTS
+    Statistical : float of the value to compare in the normal standar
+    significance: level of confidence to acept o reject the test
+    tails       : integer in [1,2] to use a test with one or two tails
+    OUTPUTS
+    test : boolean with the aceptance of rejection of the null hypothesis
+    """
+    cuantil = 1-significance/tails
+    Z_norm  = stats.norm.ppf(cuantil,loc=0,scale=1)
+    Pass    = abs(Statistical)<Z_norm
+    return Pass
+
+
 def SingChange(Serie):
     """
     Count times where are sing change
@@ -23,6 +39,23 @@ def SingChange(Serie):
     return sum((x ^ y)<0 for x, y in zip(sing, sing[1:]))
 
 
+def PeaksValleys(Serie):
+    """
+    Fin the peaks and valleys in a serie
+    INPUTS
+    Serie : list or array of with the data
+    """
+    if isinstance(Serie, list) == True:
+        Serie = np.array(Serie)
+
+    diff = Serie[:-1]-Serie[1:]
+
+    sing = np.zeros(len(diff),dtype=int) +1
+    sing[np.array(diff)<0] = -1
+
+    return sum(((x ^ y)^(y ^ z))<0 for x, y, z in zip(sing, sing[1:], sing[2:]))
+
+
 def RunsTest(Serie, significance=5E-2):
     """
     Make  run test (Rachas) for a series
@@ -30,7 +63,7 @@ def RunsTest(Serie, significance=5E-2):
     Serie : list or array with the data
     significance : level of significance to acept or reject the null hypothesis
     OUTPUTS
-    hip : boolean with the aceptance of rejection of the null hypothesis
+    test : boolean with the aceptance of rejection of the null hypothesis
     """
     S_median = np.median(Serie)
     runs = SingChange(Serie-S_median)
@@ -42,7 +75,59 @@ def RunsTest(Serie, significance=5E-2):
                        (((n1+n2)**2)*(n1+n2-1)))
 
     z = (runs-runs_exp)/stan_dev
-    Z_norm = stats.norm.ppf(1-significance/2,loc=0,scale=1)
 
-    hip = abs(z)<Z_norm
-    return hip
+    test = CompareNormStandar(z, significance,tails=2)
+
+    return test
+
+
+def ChangePointTest(Serie, significance=5E-2):
+    """
+    Make change point test for a serie
+    INPUTS
+    Serie : list or array with the data
+    significance : level of significance to acept or reject the null hypothesis
+    OUTPUTS
+    test : boolean with the aceptance of rejection of the null hypothesis
+    """
+    N = len(Serie)
+    M = PeaksValleys(Serie)
+
+    U = abs((M-(2./3.)*(N-2))/np.sqrt((16*N-29)/90.))
+
+    test = CompareNormStandar(U, significance,tails=2)
+    return test
+
+def SpearmanCoefTest(Serie):
+    """
+    """
+
+    if isinstance(Serie, list) == True:
+        Serie = np.array(Serie)
+
+    n = len(Serie)
+    S = Serie[Serie.argsort()]
+
+    R = 1-(6/(n*((n**2)-1)))* np.sum((Serie-S)**2 )
+
+    U = abs(R*np.sqrt(n-2)/np.sqrt(1-(R**2)))
+
+    test = CompareTdist(U,DegreesFredom=n-2,significance=significance,tails=2)
+    return test
+
+
+def CompareTdist(Statistical, DegreesFredom, significance, tails=1):
+    """
+    Compare an statistical of any test with the t estudent distribution
+    INPUTS
+    Statistical   : float of the value to compare in the normal standar
+    DegreesFredom : Degrees of fredom of the distirbution
+    significance  : level of confidence to acept o reject the test
+    tails         : integer in [1,2] to use a test with one or two tails
+    OUTPUTS
+    test : boolean with the aceptance of rejection of the null hypothesis
+    """
+    cuantil = 1-significance/tails
+    t = stats.t.ppf(cuantil,df=DegreesFredom)
+    Pass    = abs(Statistical)<t
+    return Pass
