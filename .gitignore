@@ -132,3 +132,7 @@ Datos/
 CleanData/
 *csv
 .DS_Store
+*.png
+*.pptx
+*.xlsx
+*.xls
