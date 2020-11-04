@@ -8,6 +8,11 @@ import pandas as pd
 import datetime as dt
 from scipy import stats
 
+from Modules import Read
+from Modules.Utils import Listador
+
+
+
 def CompareNormStandar(Statistical, significance, tails=1):
     """
     Compare an statistical of any test with the normal standar
@@ -138,15 +143,18 @@ def SpearmanCoefTest(Serie, significance=5E-2):
 
 
 
-def AndersonTest(Serie, rezagos, significance, ):
+def AndersonTest(Serie, rezagos=None, significance=5E-2, ):
     """
     Make andreson independence test
     INPUTS
 
     """
+
     cuantil = 1-significance/2
     Z_norm  = stats.norm.ppf(cuantil,loc=0,scale=1)
     N = len(Serie)
+    if rezagos is None:
+        rezagos = N -2
     Mean = np.nanmean(Serie)
     r = np.empty(len(Serie), dtype=float)
     t = np.empty(len(Serie), dtype=bool)
@@ -154,7 +162,7 @@ def AndersonTest(Serie, rezagos, significance, ):
     for k in range(rezagos):
         lim_up = (-1 + Z_norm*np.sqrt(N-k-1))/(N-k)
         lim_dw = (-1 - Z_norm*np.sqrt(N-k-1))/(N-k)
-        r[k] =  np.sum((Serie[:N-k]-Mean)*(Serie[k:]-Mean))/np.sum((Seie - Mean)**2)
+        r[k] =  np.sum((Serie[:N-k]-Mean)*(Serie[k:]-Mean))/np.sum((Serie - Mean)**2)
         if (r[k] > lim_dw)&(r[k]<lim_up):
             t[k] = True
         else:
@@ -165,3 +173,29 @@ def AndersonTest(Serie, rezagos, significance, ):
         test = False
 
     return test
+
+
+
+Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
+
+
+Estaciones = Listador(Est_path,final='.csv')
+
+Pruebas = ['Rachas', 'PuntoCambio', 'Spearman', 'Anderson']
+Test = pd.DataFrame([], columns=Pruebas)
+
+for i in range(len(Estaciones)):
+
+    Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
+    Name = Meta.iloc[0].values[0]
+
+    Dat = Read.EstacionCSV_pd(Estaciones[i], Name, path=Est_path)
+    dat =  Dat.values.ravel()
+    tst = {'Rachas'     :RunsTest(dat),
+           'PuntoCambio':ChangePointTest(dat),
+           'Spearman'   :SpearmanCoefTest(dat),
+           'Anderson'   :AndersonTest(dat)}
+    Est = pd.Series(data=tst, name=Name)
+    Test = Test.append(Est)
+
+Test.to_csv('Test.csv', sep=',')
