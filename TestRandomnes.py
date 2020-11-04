@@ -23,6 +23,21 @@ def CompareNormStandar(Statistical, significance, tails=1):
     Pass    = abs(Statistical)<Z_norm
     return Pass
 
+def CompareTdist(Statistical, DegreesFredom, significance, tails=1):
+    """
+    Compare an statistical of any test with the t estudent distribution
+    INPUTS
+    Statistical   : float of the value to compare in the normal standar
+    DegreesFredom : Degrees of fredom of the distirbution
+    significance  : level of confidence to acept o reject the test
+    tails         : integer in [1,2] to use a test with one or two tails
+    OUTPUTS
+    test : boolean with the aceptance of rejection of the null hypothesis
+    """
+    cuantil = 1-significance/tails
+    t = stats.t.ppf(cuantil,df=DegreesFredom)
+    Pass    = abs(Statistical)<t
+    return Pass
 
 def SingChange(Serie):
     """
@@ -98,8 +113,14 @@ def ChangePointTest(Serie, significance=5E-2):
     test = CompareNormStandar(U, significance,tails=2)
     return test
 
-def SpearmanCoefTest(Serie):
+def SpearmanCoefTest(Serie, significance=5E-2):
     """
+    Make Spearman coeficient test
+    INPUTS
+    Serie : list or array with the data
+    significance : level of significance to acept or reject the null hypothesis
+    OUTPUTS
+    test : boolean with the aceptance of rejection of the null hypothesis
     """
 
     if isinstance(Serie, list) == True:
@@ -116,18 +137,31 @@ def SpearmanCoefTest(Serie):
     return test
 
 
-def CompareTdist(Statistical, DegreesFredom, significance, tails=1):
+
+def AndersonTest(Serie, rezagos, significance, ):
     """
-    Compare an statistical of any test with the t estudent distribution
+    Make andreson independence test
     INPUTS
-    Statistical   : float of the value to compare in the normal standar
-    DegreesFredom : Degrees of fredom of the distirbution
-    significance  : level of confidence to acept o reject the test
-    tails         : integer in [1,2] to use a test with one or two tails
-    OUTPUTS
-    test : boolean with the aceptance of rejection of the null hypothesis
+
     """
-    cuantil = 1-significance/tails
-    t = stats.t.ppf(cuantil,df=DegreesFredom)
-    Pass    = abs(Statistical)<t
-    return Pass
+    cuantil = 1-significance/2
+    Z_norm  = stats.norm.ppf(cuantil,loc=0,scale=1)
+    N = len(Serie)
+    Mean = np.nanmean(Serie)
+    r = np.empty(len(Serie), dtype=float)
+    t = np.empty(len(Serie), dtype=bool)
+
+    for k in range(rezagos):
+        lim_up = (-1 + Z_norm*np.sqrt(N-k-1))/(N-k)
+        lim_dw = (-1 - Z_norm*np.sqrt(N-k-1))/(N-k)
+        r[k] =  np.sum((Serie[:N-k]-Mean)*(Serie[k:]-Mean))/np.sum((Seie - Mean)**2)
+        if (r[k] > lim_dw)&(r[k]<lim_up):
+            t[k] = True
+        else:
+            t[k] = False
+    if t.sum() == N:
+        test == True
+    else:
+        test = False
+
+    return test
