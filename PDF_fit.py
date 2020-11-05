@@ -12,20 +12,20 @@ import pylab as plt
 
 ############################   L-moments functions   ###########################
 
-from Lmoments import Lmom, Lmom1
-from Lmoments import L_ratiodiagram
-from Lmoments import Lnorm, Lexp, Lgumbel, LGPA, LGEV, LGLO, LLOG3, LP3
-from Lmoments import EXPcdf, GUMcdf, NORMcdf, GPAcdf, GEVcdf, GLOcdf, LLOG3cdf, LP3cdf
-from Lmoments import EXPq, GUMq, NORMq, GPAq, GEVq, GLOq, LLOG3q, LP3q
+from Modules.Lmoments import Lmom, Lmom1
+from Modules.Lmoments import L_ratiodiagram
+from Modules.Lmoments import Lnorm, Lexp, Lgumbel, LGPA, LGEV, LGLO, LLOG3, LP3
+from Modules.Lmoments import EXPcdf, GUMcdf, NORMcdf, GPAcdf, GEVcdf, GLOcdf, LLOG3cdf, LP3cdf
+from Modules.Lmoments import EXPq, GUMq, NORMq, GPAq, GEVq, GLOq, LLOG3q, LP3q
 
 dist_names = ['norm', 'expon', 'gumbel_r', 'genpareto',
               'genextreme', 'genlogistic', 'lognorm', 'pearson3']
-names = ['Norm.', 'Exp.', 'Gumbel', 'GPA', 'GEV',  'GLO',  'LOGN3', 'P3']
+names  = ['Norm.', 'Exp.', 'Gumbel', 'GPA', 'GEV',  'GLO',  'LOGN3', 'P3']
 colors = ['k'   ,   'g' ,   'gold',   'b',   'r', 'lime', 'orange',  'm']
 
 Ldist = [Lnorm, Lexp, Lgumbel, LGPA, LGEV, LGLO, LLOG3, LP3]
-LCDF = [NORMcdf, EXPcdf, GUMcdf, GPAcdf, GEVcdf, GLOcdf, LLOG3cdf, LP3cdf]
-Lq = [NORMq, EXPq, GUMq, GPAq, GEVq, GLOq, LLOG3q, LP3q]
+LCDF  = [NORMcdf, EXPcdf, GUMcdf, GPAcdf, GEVcdf, GLOcdf, LLOG3cdf, LP3cdf]
+Lq    = [NORMq, EXPq, GUMq, GPAq, GEVq, GLOq, LLOG3q, LP3q]
 
 ################################   INPUT   #####################################
 
@@ -40,7 +40,7 @@ except:
     serie = np.asarray(data.iloc[:,0])
 serie = serie[~np.isnan(serie)]*1.079
 
-lmom, lmomA = Lmom(serie)
+lmom, lmomA   = Lmom(serie)
 lmom1, t3, t4 = Lmom1(serie)
 
 L_ratiodiagram(lmom, Est)
@@ -66,8 +66,8 @@ fontsize = 17
 
 #################################   L-Moments   ################################
 
-paramsLM = np.zeros((len(dist_names), 3))*np.NaN
-ks_LM = np.zeros(len(dist_names))
+paramsLM  = np.zeros((len(dist_names), 3))*np.NaN
+ks_LM     = np.zeros(len(dist_names))
 pvalue_LM = np.zeros(len(dist_names))
 
 ax1 = plt.subplot(gs[1])
@@ -116,8 +116,8 @@ for axis in ['top','bottom','left','right']:
 
 ###########################   Maximum Likelihood   #############################
 
-paramsMEL = np.zeros((len(dist_names), 3))
-ks_MEL = np.zeros(len(dist_names))
+paramsMEL  = np.zeros((len(dist_names), 3))
+ks_MEL     = np.zeros(len(dist_names))
 pvalue_MEL = np.zeros(len(dist_names))
 
 ax0 = plt.subplot(gs[0], sharex = ax1)
@@ -197,8 +197,8 @@ plt.plot(x, cdf_fitLM, lw = 2, color = 'r', label = u'L-momentos')
 plt.xlim([np.min(serie), np.max(serie)])
 plt.ylim([0,1])
 plt.ylabel('CDF', fontsize = fontsize, labelpad = 0)
-# plt.xlabel('Caudal [m$^3$/s]', fontsize = fontsize, labelpad = 0)
-plt.xlabel('Nivel [m.s.n.m]', fontsize = fontsize, labelpad = 0)
+plt.xlabel('Caudal [m$^3$/s]', fontsize = fontsize, labelpad = 0)
+# plt.xlabel('Nivel [m.s.n.m]', fontsize = fontsize, labelpad = 0)
 plt.tick_params(axis='x', which='both', labelsize=fontsize, direction = 'in')
 plt.tick_params(axis='y', which='both', labelsize=fontsize, direction = 'in')
 ax0.tick_params('both', length=5, width = 1.5, which='major')
@@ -270,8 +270,8 @@ plt.plot(Tr, quant_LM, 's-', mfc = 'b', mec = 'k', mew = 1.2, color = 'b',
 #          lw = 1.5, label = 'PADEC (2016)', clip_on = False, zorder = 5)
 #plt.ylim([0, 3500])
 plt.xlabel(u'Periodo de retorno [años]', fontsize = fontsize, labelpad = 0)
-# plt.ylabel('Caudal [m$^3$/s]', fontsize = fontsize, labelpad = 0)
-plt.ylabel('Nivel [m.s.n.m]', fontsize = fontsize, labelpad = 0)
+plt.ylabel('Caudal [m$^3$/s]', fontsize = fontsize, labelpad = 0)
+# plt.ylabel('Nivel [m.s.n.m]', fontsize = fontsize, labelpad = 0)
 plt.tick_params(axis='x', which='both', labelsize=fontsize, direction = 'in')
 plt.tick_params(axis='y', which='both', labelsize=fontsize, direction = 'in')
 ax0.tick_params('both', length=7, width = 1.5, which='major')
