@@ -29,16 +29,16 @@ Lq    = [NORMq, EXPq, GUMq, GPAq, GEVq, GLOq, LLOG3q, LP3q]
 
 ################################   INPUT   #####################################
 
-Est = 'SanMarcos'
-data = pd.read_csv(Est + '.csv', index_col = 0, header = 0, low_memory=False)
-#dates = data.index
-#times = [plt.date2num(dt.datetime.strptime(d,'%Y-%m-%d')) for d in dates]
-#dates = [dt.datetime.strptime(d,'%Y-%m-%d') for d in dates]
-try:
-    serie = np.asarray(data.iloc[:,1])
-except:
-    serie = np.asarray(data.iloc[:,0])
-serie = serie[~np.isnan(serie)]*1.079
+# Est = 'SanMarcos'
+# data = pd.read_csv(Est + '.csv', index_col = 0, header = 0, low_memory=False)
+# #dates = data.index
+# #times = [plt.date2num(dt.datetime.strptime(d,'%Y-%m-%d')) for d in dates]
+# #dates = [dt.datetime.strptime(d,'%Y-%m-%d') for d in dates]
+# try:
+#     serie = np.asarray(data.iloc[:,1])
+# except:
+#     serie = np.asarray(data.iloc[:,0])
+# serie = serie[~np.isnan(serie)]*1.079
 
 
 #################################   L-Moments   ################################

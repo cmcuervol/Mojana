@@ -130,6 +130,7 @@ dmypy.json
 
 Datos/
 CleanData/
+IDF/
 *csv
 .DS_Store
 *.png
