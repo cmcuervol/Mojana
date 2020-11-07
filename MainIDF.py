@@ -27,7 +27,7 @@ def MaxAnual(Esta, Path_series):
     Read estation to extract the anual max value
     """
     Dat = Read.EstacionCSV_np(Esta, Esta.split('.csv')[0],Path_series)
-    Max =  Dat.groupby(lambda y : y.year).max()
+    Max = Dat.groupby(lambda y : y.year).max()
 
     return Max[~np.isnan(Max.values)].values.ravel()/24
 

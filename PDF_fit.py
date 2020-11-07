@@ -4,12 +4,13 @@ Created on Sun Oct 11 18:00:30 2020
 
 @author: Andres
 """
-
-import pandas as pd
+import os
 import numpy as np
+import pandas as pd
 import scipy.stats as st
 import pylab as plt
 
+from Modules import Read
 ############################   L-moments functions   ###########################
 
 from Modules.Lmoments import Lmom, Lmom1
@@ -29,16 +30,32 @@ Lq    = [NORMq, EXPq, GUMq, GPAq, GEVq, GLOq, LLOG3q, LP3q]
 
 ################################   INPUT   #####################################
 
-Est = 'SanMarcos'
-data = pd.read_csv(Est + '.csv', index_col = 0, header = 0, low_memory=False)
-#dates = data.index
-#times = [plt.date2num(dt.datetime.strptime(d,'%Y-%m-%d')) for d in dates]
-#dates = [dt.datetime.strptime(d,'%Y-%m-%d') for d in dates]
-try:
-    serie = np.asarray(data.iloc[:,1])
-except:
-    serie = np.asarray(data.iloc[:,0])
-serie = serie[~np.isnan(serie)]*1.079
+Path_dat = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Datos/csv/'))
+Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Analisis_frecuencias'))
+
+def MaxAnual(Esta, Path_series):
+    """
+    Read estation to extract the anual max value
+    """
+    Dat = Read.EstacionCSV_np(Esta, Esta.split('.csv')[0],Path_series)
+    Max = Dat.groupby(lambda y : y.year).max()
+
+    return Max[~np.isnan(Max.values)].values.ravel()
+
+# Est = 'SanMarcos'
+# data = pd.read_csv(Est + '.csv', index_col = 0, header = 0, low_memory=False)
+# #dates = data.index
+# #times = [plt.date2num(dt.datetime.strptime(d,'%Y-%m-%d')) for d in dates]
+# #dates = [dt.datetime.strptime(d,'%Y-%m-%d') for d in dates]
+# try:
+#     serie = np.asarray(data.iloc[:,1])
+# except:
+#     serie = np.asarray(data.iloc[:,0])
+# serie = serie[~np.isnan(serie)]*1.079
+
+Est = 'MONTELIBANO - AUT [25017010]'
+
+serie = MaxAnual(Est+'.csv', Path_dat)
 
 lmom, lmomA   = Lmom(serie)
 lmom1, t3, t4 = Lmom1(serie)
@@ -154,10 +171,10 @@ for axis in ['top','bottom','left','right']:
      ax0.spines[axis].set_linewidth(1.8)
 plt.legend(loc='best', fontsize = fontsize-1)
 
-plt.savefig('Ajustes_' + Est + 'A.png', dpi = 400)
+plt.savefig(os.path.join(Path_out,'Ajustes_' + Est + 'A.png'), dpi = 400)
 
 df = pd.DataFrame({'ks_MEL': ks_MEL, 'ks_LM': ks_LM}, index = names)
-df.to_excel('Smirnov-Kolmogorov'+Est+'.xls')
+df.to_excel(os.path.join(Path_out,'Smirnov-Kolmogorov'+Est+'.xls'))
 
 
 ################################################################################
@@ -207,7 +224,7 @@ for axis in ['top','bottom','left','right']:
      ax0.spines[axis].set_linewidth(1.8)
 plt.legend(loc='lower right', fontsize = fontsize-1)
 
-plt.savefig('Best_fit_' + Est + 'B.png', dpi = 400)
+plt.savefig(os.path.join(Path_out,'Best_fit_' + Est + 'B.png'), dpi = 400)
 
 
 ################################################################################
@@ -283,8 +300,8 @@ for axis in ['top','bottom','left','right']:
      ax0.spines[axis].set_linewidth(1.8)
 plt.legend(loc='best', numpoints = 1, fontsize = fontsize-1)
 
-plt.savefig('Cuantiles_' + Est + 'B.png', dpi = 400)
+plt.savefig(os.path.join(Path_out,'Cuantiles_' + Est + 'B.png'), dpi = 400)
 
 
 cuantiles = pd.DataFrame( np.array([quant_LM,quant_MEL]).T, index = Tr, columns=['LM', 'MEL'])
-cuantiles.to_csv('Cuantiles_' + Est + 'B.csv')
+cuantiles.to_csv(os.path.join(Path_out,'Cuantiles_' + Est + 'B.csv'))
