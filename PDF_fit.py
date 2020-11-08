@@ -31,6 +31,7 @@ Lq    = [NORMq, EXPq, GUMq, GPAq, GEVq, GLOq, LLOG3q, LP3q]
 ################################   INPUT   #####################################
 
 Path_dat = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Datos/csv/'))
+Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Analisis_frecuencias'))
 
 def MaxAnual(Esta, Path_series):
@@ -53,9 +54,17 @@ def MaxAnual(Esta, Path_series):
 #     serie = np.asarray(data.iloc[:,0])
 # serie = serie[~np.isnan(serie)]*1.079
 
-Est = 'MONTELIBANO - AUT [25017010]'
+code = '25017010'
+Meta = pd.read_csv(os.path.join(Est_path, code+'.meta'),index_col=0)
+Est  = Meta.iloc[0].values[0]
 
-serie = MaxAnual(Est+'.csv', Path_dat)
+serie = Read.EstacionCSV_pd(code+'.csv', Est, path=Est_path)
+serie = serie.groupby(lambda y : y.year).max()
+serie =  serie[~np.isnan(serie.values)].values.ravel()
+
+# Est = 'MONTELIBANO - AUT [25017010]'
+#
+# serie = MaxAnual(Est+'.csv', Path_dat)
 
 lmom, lmomA   = Lmom(serie)
 lmom1, t3, t4 = Lmom1(serie)

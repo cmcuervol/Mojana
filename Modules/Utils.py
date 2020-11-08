@@ -425,6 +425,8 @@ def HistogramValues(Values, bins = 10):
     b      : Middle point of the histogram intervals
     """
     # Genera el histograma de valores
+    if isinstance(Values, np.ndarray) == False:
+        Values = np.array(Values)
     val = Values[~np.isnan(Values)]
     h,b = np.histogram(val,bins=bins)
     h = h.astype(float); h = h / h.sum()

@@ -131,6 +131,7 @@ dmypy.json
 Datos/
 CleanData/
 IDF/
+Hydrograms/
 *csv
 .DS_Store
 *.png
