@@ -1,10 +1,56 @@
+# -*- coding: utf-8 -*-
+# !/usr/bin/env python
+
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use ("Agg")
+import os
+import sys
+import numpy as np
+import pandas as pd
+import datetime as dt
+
+from matplotlib import cm
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.colors as colors
 
 
+# Colors for graphics SIATA style
+gris70      = (112/255., 111/255., 111/255.)
+ColorInfo1  = ( 82/255., 183/255., 196/255.)
+ColorInfo2  = ( 55/255., 123/255., 148/255.)
+ColorInfo3  = ( 43/255.,  72/255., 105/255.)
+ColorInfo4  = ( 32/255.,  34/255.,  72/255.)
+ColorInfo5  = ( 34/255.,  71/255.,  94/255.)
+ColorInfo6  = ( 31/255., 115/255., 116/255.)
+ColorInfo7  = ( 39/255., 165/255., 132/255.)
+ColorInfo8  = (139/255., 187/255., 116/255.)
+ColorInfo9  = (200/255., 209/255.,  93/255.)
+ColorInfo10 = (249/255., 230/255.,  57/255.)
+
+
+AzulChimba   = ( 55/255., 132/255., 251/255.)
+AzulChimbita = ( 16/255., 108/255., 214/255.)
+VerdeChimba  = (  9/255., 210/255.,  97/255.)
+Azul         = ( 96/255., 200/255., 247/255.)
+Naranja      = (240/255., 108/255.,  34/255.)
+RojoChimba   = (240/255.,  84/255., 107/255.)
+Verdecillo   = ( 40/255., 225/255., 200/255.)
+Azulillo     = ( 55/255., 150/255., 220/255.)
+
+ver = ( 77/255.,175/255., 74/255.)
+azu = ( 55/255.,126/255.,184/255.)
+roj = (228/255., 26/255., 28/255.)
+nar = (252/255., 78/255., 42/255.)
+
+rojo    = '#d7191c'
+naranja = '#e66101'
+verdeos = '#018571'
+azul    = '#2c7bb6'
+verde   = '#1a9641'
+morado  = '#5e3c99'
+
+Path = os.getcwd()
 
 # =*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 #                                    cmaps
@@ -159,3 +205,444 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, min_val=None, max_val
     newcmap = matplotlib.colors.LinearSegmentedColormap(name, cdict)
     plt.register_cmap(cmap=newcmap)
     return newcmap
+
+
+def GraphHydrografa(times, flow, title='', name='Hidrograma', pdf=True, png=False, PathFigs=Path,):
+    """
+    Grahp unitarian hydrograph
+    INPUTS
+    title    : Figure title
+    name     : Name to save figure
+    pdf      : Boolean to save figure in pdf format
+    png      : Boolean to save figure in png format
+    PathFigs : Aboslute route to directory where figure will be save
+    """
+    plt.close('all')
+    figure =plt.figure(figsize=(12.8,8))
+
+    ax = figure.add_subplot(1,1,1)
+    ax.plot(times,flow, linewidth=2,color=azul)
+    ax.set_xlabel('Time [hours]')
+    ax.set_ylabel(u'U [m$^{3}$ s$^{-1}$ mm$^{-1}$]')
+    ax.set_title(title)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
+
+def GraphTc(Tim_dict,title='', name='ConcentrationTime', pdf=True, png=False, PathFigs=Path,):
+    """
+    Grahp of concentration times
+    INPUTS
+    Tim_dict : Dictionary with the concentration time, keys are the methodology name
+    title    : Figure title
+    name     : Name to save figure
+    pdf      : Boolean to save figure in pdf format
+    png      : Boolean to save figure in png format
+    PathFigs : Aboslute route to directory where figure will be save
+    """
+    def autolabel(rects):
+        """
+        Attach a text label above each bar in *rects*, displaying its height.
+        """
+        for rect in rects:
+            height = rect.get_height()
+            ax.annotate('{:.3f}'.format(height),
+                        xy=(rect.get_x() + rect.get_width() / 2, height),
+                        xytext=(0, 1),  # 3 points vertical offset
+                        textcoords="offset points",
+                        ha='center', va='bottom', fontsize=8)
+
+    vals = np.array(list(Tim_dict.values()))
+    lims = np.percentile(vals, [25,75])
+    idx = np.where((vals>lims[0])& (vals<lims[1]))[0]
+    Tc_mean = np.mean(vals[idx])
+
+    plt.close('all')
+    figure =plt.figure(figsize=(12.8,8))
+
+    ax = figure.add_subplot(1,1,1)
+    rects = ax.bar(range(len(Tim_dict)), list(Tim_dict.values()), align='center', color=naranja)
+
+    ax.fill_between(np.arange(-1,len(Tim_dict)+1), lims[0],lims[1],color=azul, alpha=0.8)
+    ax.plot(np.arange(-1,len(Tim_dict)+1),[Tc_mean]*(len(Tim_dict)+2), '--', color=verde)
+
+    ax.text(len(Tim_dict), Tc_mean,  '{:.3f}'.format(Tc_mean))
+    ax.set_xlim(-1,len(Tim_dict)+1)
+    ax.set_xticks(np.arange(len(Tim_dict.keys())))
+    ax.set_xticklabels(list(Tim_dict.keys()))
+    ax.set_ylabel(u'Concentration time [Hours]')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    autolabel(rects)
+
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
+def GraphIDF(Int, duration, frecuency, cmap_name='jet', name='IDF', pdf=True, png=False, PathFigs=Path,):
+    """
+    Graph of month diurnal cycles
+
+    INPUTS
+    Int       : 2D array with the Intesity [mm/hour] with shape=(len(durations), len(frecuency))
+    duration  : 1D array with durations [min]
+    frecuency : 1D array with reuturn periods [years]
+    cmap_name : color map name
+    name      : stringo for save the figure
+    Path      : abtolute Path to save files
+    """
+
+    # define some random data that emulates your indeded code:
+    NCURVES = len(frecuency)
+    plt.close('all')
+    fig = plt.figure(figsize=(12.8,8))
+    ax = fig.add_subplot(111)
+    cNorm  = colors.Normalize(vmin=0, vmax=NCURVES)
+    scalarMap = cm.ScalarMappable(norm=cNorm, cmap=plt.get_cmap(cmap_name))
+
+    lines = []
+    for idx in range(NCURVES):
+        line = Int[:, idx]
+        colorVal  = scalarMap.to_rgba(idx)
+        colorText = str(frecuency[idx])+' years'
+        retLine,  = ax.plot(duration,line, linewidth=2,
+                            color=colorVal,
+                            label=colorText)
+        lines.append(retLine)
+    #added this to get the legend to work
+    handles,labels = ax.get_legend_handles_labels()
+
+    # # Shrink current axis by 20%
+    # box = ax.get_position()
+    # ax.set_position([box.x0, box.y0, box.width*1.0, box.height])
+    ax.legend(handles, labels, loc='center right', bbox_to_anchor=(1, 0.5),
+              fancybox=False, shadow=False)
+
+    ax.set_xlabel('Duration [minutes]',)
+    ax.set_ylabel('Intensity [mm/hour]')
+
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
+
+
+
+def GraphHietogram(Pt, Pe,t, Tr,title='', name='Hietogram', pdf=True, png=False, PathFigs=Path,):
+    """
+    Make hietogram
+    INPUTS
+    Pt : Array with total precipitation [mm], shape(len(t),len(Tr))
+    Pt : Array with loses precipitation [mm], shape(len(t),len(Tr))
+    t  : list  or array with times [min]
+    Tr : List  or array with return  times [years]
+    """
+
+
+    x = np.arange(len(t))  # the label locations
+    width = 0.35  # the width of the bars
+
+    columns = 3
+    if (len(Tr)% columns) == 0:
+        rows = len(Tr)/columns
+    else:
+        rows = len(Tr)/columns +1
+
+    plt.close('all')
+    # figure =plt.figure(figsize=(6.4*columns,4*rows))
+    figure, axs = plt.subplots(figsize=(6.4*columns,4*rows),constrained_layout=True,
+                               ncols=int(columns), nrows=int(rows))
+    plt.title(title)
+
+    # for  i in range(len(Tr)):
+    for  i, ax in enumerate(axs.flat):
+        # ax = figure.add_subplot(rows,columns,i+1)
+        rects1 = ax.bar(x - width/2, Pt[:,i], width, label='Pt', color=azul)
+        rects2 = ax.bar(x + width/2, Pe[:,i], width, label='Pe', color=rojo)
+
+        # Add some text for labels, title and custom x-axis tick labels, etc.
+        ax.set_ylabel('precipitation [mm]')
+        ax.set_xlabel('time [hours]')
+        ax.set_title(str(Tr[i]))
+        ax.set_xticks(x)
+        ax.set_xticklabels(t.astype(str),rotation=90)
+        ax.legend()
+
+        def autolabel(rects):
+            """
+            Attach a text label above each bar in *rects*, displaying its height.
+            """
+            for rect in rects:
+                height = rect.get_height()
+                ax.annotate('{:.1f}'.format(height),
+                            xy=(rect.get_x() + rect.get_width() / 2, height),
+                            xytext=(0, 1),  # 3 points vertical offset
+                            textcoords="offset points",
+                            ha='center', va='bottom', fontsize=5)
+        autolabel(rects1)
+        autolabel(rects2)
+
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        # ax.spines['bottom'].set_visible(False)
+        # ax.spines['left'].set_visible(False)
+    # figure.tight_layout()
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
+
+def GraphHydrogram(times, flow, Tr, join,
+                   title='', name='Hidrograma', cmap_name='jet',
+                   pdf=True, png=False, PathFigs=Path,):
+    """
+    Grahp unitarian hydrograph
+    INPUTS
+    times    : Array with times [hours]
+    flow     : Array with flow   in diferent  return preiods
+    Tr       : List  or array with return  times [years]
+    join     : Boolean to  make in  a single figure
+    title    : Figure title
+    name     : Name to save figure
+    cmap_name: color map name
+    pdf      : Boolean to save figure in pdf format
+    png      : Boolean to save figure in png format
+    PathFigs : Aboslute route to directory where figure will be save
+    """
+    if join == True:
+        # define some random data that emulates your indeded code:
+        NCURVES = len(Tr)
+        plt.close('all')
+        fig = plt.figure(figsize=(12.8,8))
+        ax = fig.add_subplot(111)
+        cNorm  = colors.Normalize(vmin=0, vmax=NCURVES)
+        scalarMap = cm.ScalarMappable(norm=cNorm, cmap=plt.get_cmap(cmap_name))
+
+        lines = []
+        for idx in range(NCURVES):
+            line = flow[:, idx]
+            colorVal  = scalarMap.to_rgba(idx)
+            colorText = str(Tr[idx])+' years'
+            retLine,  = ax.plot(times,line, linewidth=2,
+                                color=colorVal,
+                                label=colorText)
+            lines.append(retLine)
+        #added this to get the legend to work
+        handles,labels = ax.get_legend_handles_labels()
+
+        # # Shrink current axis by 20%
+        # box = ax.get_position()
+        # ax.set_position([box.x0, box.y0, box.width*1.0, box.height])
+        ax.legend(handles, labels, loc='center right', bbox_to_anchor=(1, 0.5),
+                  fancybox=False, shadow=False)
+        ax.set_xlabel('Time [hours]')
+        ax.set_ylabel(u'Q [m$^{3}$ s$^{-1}$]')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        # ax.spines['bottom'].set_visible(False)
+        # ax.spines['left'].set_visible(False)
+    else:
+        columns = 3
+        if (len(Tr)% columns) == 0:
+            rows = len(Tr)/columns
+        else:
+            rows = len(Tr)/columns +1
+
+        plt.close('all')
+        figure =plt.figure(figsize=(6.4*columns,4*rows))
+        plt.title(title)
+        for  i in range(len(Tr)):
+            ax = figure.add_subplot(rows,columns,i+1)
+
+            ax.plot(times,flow[:,i], linewidth=2,color=azul)
+            ax.set_xlabel('Time [hours]')
+            ax.set_ylabel(u'Q [m$^{3}$ s$^{-1}$]')
+            ax.set_title(str(Tr[i]))
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            # ax.spines['bottom'].set_visible(False)
+            # ax.spines['left'].set_visible(False)
+        figure.tight_layout()
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
+
+def GraphQmax(Tr, Qmax_SCS, Qmax_Sny,Qmax_Wil, title='', name='Hidrograma', pdf=True, png=False, PathFigs=Path,):
+    """
+    Grahp unitarian hydrograph
+    INPUTS
+    Tr       : Return times [years]
+    Qmax_SCS : Max flow of SCS
+    Qmax_Sny : Max flow of Sneyder
+    Qmax_Wil : Max flow of WilliansHann
+    title    : Figure title
+    name     : Name to save figure
+    pdf      : Boolean to save figure in pdf format
+    png      : Boolean to save figure in png format
+    PathFigs : Aboslute route to directory where figure will be save
+    """
+
+    plt.close('all')
+    figure =plt.figure(figsize=(12.8,8))
+
+    ax = figure.add_subplot(1,1,1)
+    ax.plot(Tr,Qmax_SCS, linewidth=2,color=morado, label='SCS')
+    ax.plot(Tr,Qmax_Sny, linewidth=2,color=verde, label='Sneyder')
+    ax.plot(Tr,Qmax_Wil, linewidth=2,color=azul, label='Willians & Hann')
+    ax.set_xscale('log')
+    ax.legend(loc=0)
+    ax.set_xlabel('Return period [years]')
+    ax.set_ylabel(u'Flow [m$^{3}$ s$^{-1}$]')
+    ax.set_title(title)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
+def GraphHistrogram(Values, bins=10, label='', title='', name='Histogram', pdf=True, png=False, PathFigs=Path,):
+    """
+    Grahp histogram
+    INPUTS
+    Values   : List or array to graph the histogram
+    bins     : integer of the number of bins to calculate the histogram
+    label    : string of the label
+    title    : Figure title
+    name     : Name to save figure
+    pdf      : Boolean to save figure in pdf format
+    png      : Boolean to save figure in png format
+    PathFigs : Aboslute route to directory where figure will be save
+    """
+    histo = HistogramValues(Values, bins)
+    plt.close('all')
+    figure =plt.figure(figsize=(7.9,4.8))
+    ax = figure.add_subplot(1,1,1)
+
+    ax.plot(histo[1],histo[0],color=azul,lw=2)
+    ax.fill_between(histo[1],histo[0],color=verde,alpha=0.6)
+    ax.set_ylabel('Relative frecuency')
+    ax.set_xlabel(label)
+
+    # ax.plot(times,flow, linewidth=2,color=azul)
+    # ax.set_xlabel('Time [hours]')
+    # ax.set_ylabel(u'U [m$^{3}$ s$^{-1}$ mm$^{-1}$]')
+    ax.set_title(title)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
+def GraphEvents(Events, Unitarian=False, cmap_name='jet', name='Evento', pdf=True, png=False, PathFigs=Path,):
+    """
+    Graph of month diurnal cycles
+
+    INPUTS
+    Events    : List with lists or arrays of the events
+    Unitarian : Boolean to graph with scale 0 to 1 time
+    cmap_name : color map name
+    name      : stringo for save the figure
+    Path      : abtolute Path to save files
+    """
+
+    # define some random data that emulates your indeded code:
+    NCURVES = len(Events)
+    plt.close('all')
+    fig = plt.figure(figsize=(12.8,8))
+    ax = fig.add_subplot(111)
+    cNorm  = colors.Normalize(vmin=0, vmax=NCURVES)
+    scalarMap = cm.ScalarMappable(norm=cNorm, cmap=plt.get_cmap(cmap_name))
+
+    lines = []
+    for idx in range(NCURVES):
+        # line = Events[idx]
+        colorVal  = scalarMap.to_rgba(idx)
+        colorText = f'Evento {idx+1}'
+
+        if Unitarian == False:
+            x_vals = np.arange(len(Events[idx]))
+        else:
+            x_vals = np.arange(len(Events[idx]))/(len(Events[idx])-1)
+
+        retLine,  = ax.plot(x_vals,Events[idx],
+                            linewidth=1,
+                            color=colorVal,
+                            label=colorText)
+        lines.append(retLine)
+    #added this to get the legend to work
+    handles,labels = ax.get_legend_handles_labels()
+
+    # # Shrink current axis by 20%
+    # box = ax.get_position()
+    # ax.set_position([box.x0, box.y0, box.width*1.0, box.height])
+    ax.legend(handles, labels, loc='center right', bbox_to_anchor=(1, 0.5),
+              fancybox=False, shadow=False)
+    if Unitarian == False:
+        ax.set_xlabel('Duration [days]')
+    else:
+        ax.set_xlabel('Duration fraction',)
+    ax.set_ylabel('Q [m$^{3}$ s$^{-1}$]')
+
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
