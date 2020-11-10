@@ -10,60 +10,11 @@ import datetime as dt
 from Modules import Read
 from Modules.FitStats import BestFit, QuantilBestFit
 from Modules.Utils import Listador, Salto, HistogramValues
-
-import matplotlib
-matplotlib.use ("Agg")
-import matplotlib.pyplot as plt
-
-rojo    = '#d7191c'
-naranja = '#e66101'
-verdeos = '#018571'
-azul    = '#2c7bb6'
-verde   = '#1a9641'
-morado  = '#5e3c99'
+from Modules.Graphs import GraphHistrogram, GraphEvents
 
 Path_yearly = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Datos/Anuales/'))
 Path_out    = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Hydrograms'))
 Est_path    = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
-def GraphHistrogram(Values, bins=10, label='', title='', name='Histogram', pdf=True, png=False, PathFigs=Path_out,):
-    """
-    Grahp histogram
-    INPUTS
-    Values   : List or array to graph the histogram
-    bins     : integer of the number of bins to calculate the histogram
-    label    : string of the label
-    title    : Figure title
-    name     : Name to save figure
-    pdf      : Boolean to save figure in pdf format
-    png      : Boolean to save figure in png format
-    PathFigs : Aboslute route to directory where figure will be save
-    """
-    histo = HistogramValues(Values, bins)
-    plt.close('all')
-    figure =plt.figure(figsize=(7.9,4.8))
-    ax = figure.add_subplot(1,1,1)
-
-    ax.plot(histo[1],histo[0],color=azul,lw=2)
-    ax.fill_between(histo[1],histo[0],color=verde,alpha=0.6)
-    ax.set_ylabel('Relative frecuency')
-    ax.set_xlabel(label)
-
-    # ax.plot(times,flow, linewidth=2,color=azul)
-    # ax.set_xlabel('Time [hours]')
-    # ax.set_ylabel(u'U [m$^{3}$ s$^{-1}$ mm$^{-1}$]')
-    ax.set_title(title)
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    # ax.spines['bottom'].set_visible(False)
-    # ax.spines['left'].set_visible(False)
-    if pdf == True:
-        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
-        if png == True:
-            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
-    elif png == True:
-        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
-    else:
-        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
 
 
 Estaciones = Listador(Path_yearly, final='csv')
@@ -75,6 +26,7 @@ dist = np.empty(len(Estaciones), dtype='<U15')
 # ['mean', 'max', 'min', 'sum', 'count']
 
 Hydrogram = []
+MaxHydro  = []
 for i in range(len(Estaciones)):
 
     S_yearly = pd.read_csv(os.path.join(Path_yearly,Estaciones[i]), index_col = 0, header = 0)
@@ -94,9 +46,10 @@ for i in range(len(Estaciones)):
     evn = []
     Qp_dur = []
     Qp_vol = []
+    q = []
     for e in range(len(ide)-1):
         Event = S_diurnal.iloc[idh[ide[e]:ide[e+1]]]
-
+        q.append(Event.values.ravel())
         evn.append([Event.mean() .values[0],
                     Event.max()  .values[0],
                     Event.min()  .values[0],
@@ -105,13 +58,40 @@ for i in range(len(Estaciones)):
                     ])
         Qp_dur.append(Event.max().values[0]/Event.count().values[0])
         Qp_vol.append(Event.max().values[0]/Event.sum()  .values[0])
+
+    evn = np.array(evn)
+    idmax = np.where(evn[:,1] == np.max(evn[:,1]))[0][0]  # max Qp
+    Hydro = pd.DataFrame(q[idmax], columns=['caudal'])
+    Hydro.to_csv(os.path.join(Path_out,'Hydrogram_'+Estaciones[i].replace(' ', '')))
+
+    tp = np.where(q[idmax]==np.max(q[idmax]))[0][0]*24
+    maxh = [Estaciones[i].split('.csv')[0],   # Name
+            evn[idmax,1],                     # Peak
+            tp,                               # Peak time
+            evn[idmax,4],                     # Duration
+            evn[idmax,3],                     # Volumen
+            ]
+    MaxHydro.append(maxh)
+
     GraphHistrogram(Qp_dur,bins=20,
                     label=u'$\mathrm{Q_p/duration}$ [m$^{3}$ s$^{-1}$ day$^{-1}$]',
                     title=Estaciones[i].split('.csv')[0],
-                    name='Peak_duration_'+Estaciones[i].replace(' ', '').split('.csv')[0] )
+                    name='Peak_duration_'+Estaciones[i].replace(' ', '').split('.csv')[0],
+                    PathFigs=Path_out )
     GraphHistrogram(Qp_vol,bins=20,
                     label=u'$\mathrm{Q_p/Vol}$ [day s$^{-1}$]',
                     title=Estaciones[i].split('.csv')[0],
-                    name='Peak_vol_'+Estaciones[i].replace(' ', '').split('.csv')[0] )
+                    name='Peak_vol_'+Estaciones[i].replace(' ', '').split('.csv')[0],
+                    PathFigs=Path_out )
+
+    GraphEvents(q,Unitarian=False,
+                name='Events_'+Estaciones[i].replace(' ', '').split('.csv')[0],
+                PathFigs=Path_out )
+    GraphEvents(q,Unitarian=True,  
+                name='EventsUnit_'+Estaciones[i].replace(' ', '').split('.csv')[0],
+                PathFigs=Path_out )
 
     Hydrogram.append(evn)
+
+Params = pd.DataFrame(MaxHydro, columns=['Basin', 'Peak', 'PeakTime [hours]', 'Duration [days]', 'Volumen'])
+Params.to_csv(os.path.join(Path_out,'HydrogramParams.csv'))

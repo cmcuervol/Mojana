@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.colors as colors
 
+from Utils import HistogramValues
+
 
 # Colors for graphics SIATA style
 gris70      = (112/255., 111/255., 111/255.)
