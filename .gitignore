@@ -133,6 +133,7 @@ CleanData/
 IDF/
 Hydrograms/
 Balance/
+Tests/
 *csv
 .DS_Store
 *.png

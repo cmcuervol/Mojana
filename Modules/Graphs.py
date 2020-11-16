@@ -648,3 +648,43 @@ def GraphEvents(Events, Unitarian=False, cmap_name='jet', name='Evento', pdf=Tru
         plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
     else:
         print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
+def GraphSerieOutliers(Serie, lim_inf, lim_sup, label='', title='', name='Outliers1', pdf=True, png=False, PathFigs=Path,):
+    """
+    Grahp serie with ouliers
+    INPUTS
+    Serie    : array with data
+    lim_inf  : float of bottom threshold to consider outliers
+    lim_sup  : float of upper threshold to consider outliers
+    label    : string of the label
+    title    : Figure title
+    name     : Name to save figure
+    pdf      : Boolean to save figure in pdf format
+    png      : Boolean to save figure in png format
+    PathFigs : Aboslute route to directory where figure will be save
+    """
+    plt.close('all')
+    figure =plt.figure(figsize=(7.9,4.8))
+    ax = figure.add_subplot(1,1,1)
+
+    ax.plot(Serie,color=azul,lw=2)
+    ax.fill_between(np.arange(len(Serie)),[lim_sup]*len(Serie),[lim_inf]*len(Serie),color=verde,alpha=0.6)
+    ax.set_ylabel(label)
+    # ax.set_xlabel(label)
+
+    # ax.plot(times,flow, linewidth=2,color=azul)
+    # ax.set_xlabel('Time [hours]')
+    # ax.set_ylabel(u'U [m$^{3}$ s$^{-1}$ mm$^{-1}$]')
+    ax.set_title(title)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")

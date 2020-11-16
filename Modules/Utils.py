@@ -372,13 +372,14 @@ def CleanArray(original, value=0, condition='==', mask_value='delete'):
         new[idx] = mask_value
     return new
 
-def FindOutlier(serie,index=True,clean=True, xIQR=1.5, restrict_inf=None, restrict_sup=None):
+def FindOutlier(serie,index=True,clean=True,lims=True, xIQR=1.5, restrict_inf=None, restrict_sup=None):
     """
     Finds ouliers data in a series
     INPUTS
     serie : list or or 1d array
     index : boolean to return the indexes with outliers
-    celar : boolean to return the serie without outliers
+    celan : boolean to return the serie without outliers
+    lims  : boolean to return the limits
     xIQR  : Times of IQR are defined the limit to ouliers
     OUTPUTS
     ser : serie whitout ouliers if clean parameter are True
@@ -405,11 +406,20 @@ def FindOutlier(serie,index=True,clean=True, xIQR=1.5, restrict_inf=None, restri
         if clean == True:
             ser = serie[~out]
             return ser, idx
+            if lims == True:
+                return ser, idx, lim_inf, lim_sup
+        elif lims == True:
+            return idx, lim_inf, lim_sup
         else:
             return idx
     elif clean == True:
         ser = serie[~out]
-        return ser
+        if lims == True:
+            return ser, lim_inf, lim_sup
+        else:
+            return ser
+    elif lims == True:
+        return lim_inf, lim_sup
     else:
         return "Ashole, a least one of clean or index must be True"
 

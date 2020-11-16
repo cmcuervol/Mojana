@@ -7,11 +7,13 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 from scipy import stats
+import pymannkendall as mk
 
 from Modules import Read
-from Modules.Utils import Listador
+from Modules.Utils import Listador, FindOutlier
+from Modules.Graphs import GraphSerieOutliers
 
-
+Path_out    = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Tests'))
 
 def CompareNormStandar(Statistical, significance, tails=1):
     """
@@ -174,6 +176,13 @@ def AndersonTest(Serie, rezagos=None, significance=5E-2, ):
 
     return test
 
+def MannKendall_modified(Serie, rezagos=None, significance=5E-2):
+    """
+    This function checks the Modified Mann-Kendall (MK) test using Hamed and Rao (1998) method.
+    """
+    MK  = mk.hamed_rao_modification_test(Serie,alpha=significance,lag=rezagos)
+    test = CompareNormStandar(MK.z, significance,tails=2)
+    return test
 
 
 Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
@@ -181,8 +190,9 @@ Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
 
 Estaciones = Listador(Est_path,final='.csv')
 
-Pruebas = ['Rachas', 'PuntoCambio', 'Spearman', 'Anderson']
+Pruebas = ['Rachas', 'PuntoCambio', 'Spearman', 'Anderson','MannKendall']
 Test = pd.DataFrame([], columns=Pruebas)
+Outl = pd.DataFrame([], columns=['outlier_inf','outlier_sup'])
 
 for i in range(len(Estaciones)):
 
@@ -191,11 +201,21 @@ for i in range(len(Estaciones)):
 
     Dat = Read.EstacionCSV_pd(Estaciones[i], Name, path=Est_path)
     dat =  Dat.values.ravel()
+    out_inf, out_sup = FindOutlier(dat,clean=False,index=False,lims=True, restrict_inf=0)
+    GraphSerieOutliers(dat, out_inf, out_sup, title=Name, name=Estaciones[i].split('.csv')[0], PathFigs=Path_out)
     tst = {'Rachas'     :RunsTest(dat),
            'PuntoCambio':ChangePointTest(dat),
            'Spearman'   :SpearmanCoefTest(dat),
-           'Anderson'   :AndersonTest(dat)}
-    Est = pd.Series(data=tst, name=Name)
-    Test = Test.append(Est)
+           'Anderson'   :AndersonTest(dat),
+           'MannKendall':MannKendall_modified(dat, rezagos=3),}
+    out = {'outlier_inf':out_inf,
+           'outlier_sup':out_sup}
 
-Test.to_csv('Test.csv', sep=',')
+    Est = pd.Series(data=tst, name=Name)
+    Out = pd.Series(data=out, name=Name)
+    Test = Test.append(Est)
+    Outl = Outl.append(Out)
+
+
+Test.to_csv(os.path.join(Path_out,'Test.csv'),     sep=',')
+Outl.to_csv(os.path.join(Path_out,'Outliers.csv'), sep=',')
