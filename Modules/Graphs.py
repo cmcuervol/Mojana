@@ -653,7 +653,7 @@ def GraphSerieOutliers(Serie, lim_inf, lim_sup, label='', title='', name='Outlie
     """
     Grahp serie with ouliers
     INPUTS
-    Serie    : array with data
+    Serie    : DataFrame array with data
     lim_inf  : float of bottom threshold to consider outliers
     lim_sup  : float of upper threshold to consider outliers
     label    : string of the label
@@ -667,9 +667,24 @@ def GraphSerieOutliers(Serie, lim_inf, lim_sup, label='', title='', name='Outlie
     figure =plt.figure(figsize=(7.9,4.8))
     ax = figure.add_subplot(1,1,1)
 
-    ax.plot(Serie,color=azul,lw=2)
+    ax.plot(np.arange(len(Serie)),Serie.values,color=azul,lw=2)
     ax.fill_between(np.arange(len(Serie)),[lim_sup]*len(Serie),[lim_inf]*len(Serie),color=verde,alpha=0.6)
     ax.set_ylabel(label)
+    # ticks = ax.get_xticks()
+    # labels = [Serie.index[int(i)].strftime('%H:%M') for i in ticks[:-1]]
+    start, end = ax.get_xlim()
+
+    ax.xaxis.set_ticks(np.linspace(start, end, 10))
+    ticks = ax.get_xticks()
+    mes = ['Ene','Feb','Mar', 'Abr', 'May','Jun','Jul',
+           'Ago', 'Sep','Oct','Nov','Dic']
+    labels = [mes[Serie.index[int(i)].month-1]+'\n'+str(Serie.index[int(i)].year) for i in ticks[1:-1]]
+    labels.insert(0,'')
+    labels.append('')
+    ax.set_xticklabels(labels)
+    # start, end = ax.get_xlim()
+    # ax.xaxis.set_ticks(np.linspace(start, end, 8))
+    # ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
     # ax.set_xlabel(label)
 
     # ax.plot(times,flow, linewidth=2,color=azul)

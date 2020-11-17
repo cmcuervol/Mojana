@@ -200,21 +200,29 @@ for i in range(len(Estaciones)):
     Name = Meta.iloc[0].values[0]
 
     Dat = Read.EstacionCSV_pd(Estaciones[i], Name, path=Est_path)
-    dat =  Dat.values.ravel()
-    out_inf, out_sup = FindOutlier(dat,clean=False,index=False,lims=True, restrict_inf=0)
-    GraphSerieOutliers(dat, out_inf, out_sup, title=Name, name=Estaciones[i].split('.csv')[0], PathFigs=Path_out)
-    tst = {'Rachas'     :RunsTest(dat),
-           'PuntoCambio':ChangePointTest(dat),
-           'Spearman'   :SpearmanCoefTest(dat),
-           'Anderson'   :AndersonTest(dat),
-           'MannKendall':MannKendall_modified(dat, rezagos=3),}
-    out = {'outlier_inf':out_inf,
-           'outlier_sup':out_sup}
+    # dat =  Dat.values.ravel()
+    dat = Dat.groupby(lambda y: y.year).max().values.ravel()
+    out_inf, out_sup = FindOutlier(Dat.values.ravel(),clean=False,index=False,lims=True, restrict_inf=0)
+    # Path_SaveFigure  = os.path.join(Path_out,Meta.iloc[-4].values[0])
+    GraphSerieOutliers(Dat, out_inf, out_sup,
+                       title=Name,
+                       label=Meta.iloc[-2].values[0],
+                       png=True, pdf=False,
+                       name=Estaciones[i].split('.csv')[0],
+                       PathFigs=os.path.join(Path_out,Meta.iloc[-4].values[0]))
+    if len(dat)>3:
+        tst = {'Rachas'     :RunsTest(dat),
+               'PuntoCambio':ChangePointTest(dat),
+               'Spearman'   :SpearmanCoefTest(dat),
+               'Anderson'   :AndersonTest(dat),
+               'MannKendall':MannKendall_modified(dat, rezagos=None),}
+        out = {'outlier_inf':out_inf,
+               'outlier_sup':out_sup}
 
-    Est = pd.Series(data=tst, name=Name)
-    Out = pd.Series(data=out, name=Name)
-    Test = Test.append(Est)
-    Outl = Outl.append(Out)
+        Est = pd.Series(data=tst, name=Name)
+        Out = pd.Series(data=out, name=Name)
+        Test = Test.append(Est)
+        Outl = Outl.append(Out)
 
 
 Test.to_csv(os.path.join(Path_out,'Test.csv'),     sep=',')
