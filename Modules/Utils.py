@@ -442,3 +442,93 @@ def HistogramValues(Values, bins = 10):
     h = h.astype(float); h = h / h.sum()
     b = (b[1:]+b[:-1])/2.0
     return h, b
+
+def Cycles(serie, type='annual-diurnal', percentiles='mean'):
+    """
+    Make climatological cycles of a series
+    INPUTS
+    serie:       Pandas series or DataFrame with dates as the index
+    type:        type of cycle, 'annual', 'diurnal' or 'annual-diurnal'
+    percentiles: The percentiles to extract of the climatology,
+                  the special key 'mean' is for the mean not median, that corresponds to percentile 50
+    OUTPUTS
+    cly : array of climatology, the dimensions are:
+          [month, percentile] if are of type annual
+          [hour , percentile] if are of type diurnal
+          [month, hour, percentile] if are of type annual
+          note if percentile is the key 'mean' this dimension has length 1
+    """
+
+    if type == 'annual-diurnal':
+        if percentiles == 'mean':
+            cly = np.zeros((12,24), dtype=float)
+            idx = serie.groupby(lambda x: (x.month, x.hour)).agg(np.mean)
+            for m in range(12):
+                for h in range(24):
+                    try:
+                        cly[m,h] = idx[(m+1,h)]
+                    except:
+                        ide = np.where(idx.index == (m+1,h))[0]
+                        if len(ide)== 0:
+                            cly[m,h] = np.nan
+                        else:
+                            cly[m,h] = idx.iloc[ide,0].values
+
+        else:
+            cly = np.zeros((12,24, len(percentiles)), dtype=float)
+            idx = serie.groupby(lambda x: (x.month, x.hour))
+            for m in range(12):
+                for h in range(24):
+                    try:
+                        cly[m,h, :] = np.percentile(serie[idx.groups[(m+1,h)]], percentiles)
+                    except:
+                        ide = [np.where(serie.index==i)[0][0] for i in idx.groups[(m+1,h)]]
+                        if len(ide) == 0:
+                            cly[m,h, :] = np.nan
+                        else:
+                            cly[m,h, :] = np.percentile(serie.iloc[ide], percentiles)
+
+    elif type == 'annual':
+        if percentiles == 'mean':
+            cly = serie.groupby(lambda x: x.month).agg(np.mean).values
+        else:
+            cly = np.zeros((12,len(percentiles)), dtype=float)
+            idx = serie.groupby(lambda x: x.month)
+            for m in range(12):
+                # cly[m,:] = np.percentile(serie[idx.groups[m+1]], percentiles)
+                try:
+                    cly[m, :] = np.percentile(serie[idx.groups[m+1]], percentiles)
+                except:
+                    ide = [np.where(serie.index==i)[0][0] for i in idx.groups[m+1]]
+                    if len(ide) == 0:
+                        cly[m, :] = np.nan
+                    else:
+                        cly[m, :] = np.percentile(serie.iloc[ide], percentiles)
+    elif type == 'diurnal':
+        if percentiles == 'mean':
+            cly = serie.groupby(lambda x: x.hour).agg(np.mean).values
+        else:
+            cly = np.zeros((24,len(percentiles)), dtype=float)
+            idx = serie.groupby(lambda x: x.hour)
+            for h in range(24):
+                # cly[h,:] = np.percentile(serie[idx.groups[h]], percentiles)
+                try:
+                    cly[h, :] = np.percentile(serie[idx.groups[h]], percentiles)
+                except:
+                    ide = [np.where(serie.index==i)[0][0] for i in idx.groups[h]]
+                    if len(ide) == 0:
+                        cly[h, :] = np.nan
+                    else:
+                        cly[h, :] = np.percentile(serie.iloc[ide], percentiles)
+    else:
+        print('choose between: diurnal, annual or annual-diurnal')
+    return cly
+
+def Nearest(items, pivot):
+    """
+    Found the nearest element
+    INPUTS
+    items : array or list with the  elements
+    pivot : elemtent to  compare
+    """
+    return min(items, key=lambda x: abs(x - pivot))

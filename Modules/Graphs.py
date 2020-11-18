@@ -678,7 +678,7 @@ def GraphSerieOutliers(Serie, lim_inf, lim_sup, label='', title='', name='Outlie
     ticks = ax.get_xticks()
     mes = ['Ene','Feb','Mar', 'Abr', 'May','Jun','Jul',
            'Ago', 'Sep','Oct','Nov','Dic']
-    labels = [mes[Serie.index[int(i)].month-1]+'\n'+str(Serie.index[int(i)].year) for i in ticks[1:-1]]
+    labels = [mes[Serie.index[int(i)][1]-1]+'\n'+str(Serie.index[int(i)][0]) for i in ticks[1:-1]]
     labels.insert(0,'')
     labels.append('')
     ax.set_xticklabels(labels)
@@ -687,9 +687,41 @@ def GraphSerieOutliers(Serie, lim_inf, lim_sup, label='', title='', name='Outlie
     # ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
     # ax.set_xlabel(label)
 
-    # ax.plot(times,flow, linewidth=2,color=azul)
-    # ax.set_xlabel('Time [hours]')
-    # ax.set_ylabel(u'U [m$^{3}$ s$^{-1}$ mm$^{-1}$]')
+    ax.set_title(title)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
+def DurationCurve(T_super, Values, label='', title='', name='DurationCurve', pdf=True, png=False, PathFigs=Path,):
+    """
+    Grahp serie with ouliers
+    INPUTS
+    T_super  : Array of percentaje of superation
+    Values   : Array with data
+    label    : string of the label
+    title    : Figure title
+    name     : Name to save figure
+    pdf      : Boolean to save figure in pdf format
+    png      : Boolean to save figure in png format
+    PathFigs : Aboslute route to directory where figure will be save
+    """
+    plt.close('all')
+    figure =plt.figure(figsize=(7.9,4.8))
+    ax = figure.add_subplot(1,1,1)
+
+    ax.scatter(T_super,Values, s=10, c=rojo)
+    ax.set_ylabel(label)
+    ax.set_xlabel('Porcentaje de excedencia')
+
     ax.set_title(title)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)

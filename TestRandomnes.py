@@ -10,10 +10,10 @@ from scipy import stats
 import pymannkendall as mk
 
 from Modules import Read
-from Modules.Utils import Listador, FindOutlier
+from Modules.Utils import Listador, FindOutlier, Cycles
 from Modules.Graphs import GraphSerieOutliers
 
-Path_out    = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Tests'))
+Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Tests'))
 
 def CompareNormStandar(Statistical, significance, tails=1):
     """
@@ -201,26 +201,27 @@ for i in range(len(Estaciones)):
 
     Dat = Read.EstacionCSV_pd(Estaciones[i], Name, path=Est_path)
     # dat =  Dat.values.ravel()
-    dat = Dat.groupby(lambda y: y.year).max().values.ravel()
-    out_inf, out_sup = FindOutlier(Dat.values.ravel(),clean=False,index=False,lims=True, restrict_inf=0)
+    yearly  = Dat.groupby(lambda y: y.year).max().values.ravel()
+    mensual = Dat.groupby(lambda m: (m.year,m.month)).max()
+    out_inf, out_sup = FindOutlier(mensual,clean=False,index=False,lims=True, restrict_inf=0)
     # Path_SaveFigure  = os.path.join(Path_out,Meta.iloc[-4].values[0])
-    GraphSerieOutliers(Dat, out_inf, out_sup,
+    GraphSerieOutliers(mensual, out_inf, out_sup,
                        title=Name,
                        label=Meta.iloc[-2].values[0],
                        png=True, pdf=False,
                        name=Estaciones[i].split('.csv')[0],
                        PathFigs=os.path.join(Path_out,Meta.iloc[-4].values[0]))
-    if len(dat)>3:
-        tst = {'Rachas'     :RunsTest(dat),
-               'PuntoCambio':ChangePointTest(dat),
-               'Spearman'   :SpearmanCoefTest(dat),
-               'Anderson'   :AndersonTest(dat),
-               'MannKendall':MannKendall_modified(dat, rezagos=None),}
+    if len(yearly)>3:
+        tst = {'Rachas'     :RunsTest(yearly),
+               'PuntoCambio':ChangePointTest(yearly),
+               'Spearman'   :SpearmanCoefTest(yearly),
+               'Anderson'   :AndersonTest(yearly),
+               'MannKendall':MannKendall_modified(yearly, rezagos=None),}
         out = {'outlier_inf':out_inf,
                'outlier_sup':out_sup}
 
-        Est = pd.Series(data=tst, name=Name)
-        Out = pd.Series(data=out, name=Name)
+        Est = pd.Series(data=tst, name=Name+'Caudal' if Meta.iloc[-4].values[0]=='CAUDAL' else Name+'Nivel')
+        Out = pd.Series(data=out, name=Name+'Caudal' if Meta.iloc[-4].values[0]=='CAUDAL' else Name+'Nivel')
         Test = Test.append(Est)
         Outl = Outl.append(Out)
 
