@@ -134,6 +134,7 @@ IDF/
 Hydrograms/
 Balance/
 Tests/
+Ajustes/
 *csv
 .DS_Store
 *.png
