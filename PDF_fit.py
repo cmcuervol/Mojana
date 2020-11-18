@@ -56,6 +56,8 @@ def MaxAnual(Esta, Path_series):
 # serie = serie[~np.isnan(serie)]*1.079
 
 Estaciones = Listador(Est_path,final='.csv')
+# idx = np.where(np.array(Estaciones) == '25027220N.csv')[0]
+# for i in idx:
 for i in range(len(Estaciones)):
 
     Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
