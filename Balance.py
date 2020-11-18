@@ -51,6 +51,9 @@ Monte_q =  np.max([Monte_LM, Monte_MEL], axis=0)
 SJorg1 = Magan_q - Barbo_q
 SJorg2 = Magan_q - Armen_q - Cruz3_q
 
+SJorg = pd.DataFrame(np.array([SJorg1,SJorg2]).T, index=Tr, columns=['Magangue - Barbosa','Magangue - Armenia - Tres Cruces'])
+SJorg.to_csv(os.path.join(Path_out,'BalanceSanJorgeTr.csv'))
+
 import matplotlib
 matplotlib.use ("Agg")
 import matplotlib.pyplot as plt
