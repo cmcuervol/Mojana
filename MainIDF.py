@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from Modules.IDF_Func import Wilches
 from Modules.IDF_Func import Pulgarin
+from Modules.IDF_Func import VargasDiazGranados
 from Modules.Utils import Listador
 from Modules import Read
 
@@ -92,15 +93,38 @@ Estaciones = Listador(Path_series, final='.csv')
 # Return periods
 Tr = np.array([2.33, 5, 10, 25, 50, 100, 200, 500, 1000])
 theta = -0.82
+#
+# for i in range(len(Estaciones)):
+#     Nombre = Estaciones[i].split('.csv')[0]
+#
+#     data = MaxAnual(Estaciones[i], Path_series)
+#     dP, Idq = Pulgarin(data, Tr, theta)
+#     GraphIDF(Idq, dP, Tr, cmap_name='jet', name=Nombre+'IDF', pdf=True, png=False, PathFigs=Path_IDF,)
+#     IDF = pd.DataFrame(Idq, index=dP, columns=Tr)
+#     IDF.to_csv(os.path.join(Path_IDF,Estaciones[i]))
+#
 
-for i in range(len(Estaciones)):
-    Nombre = Estaciones[i].split('.csv')[0]
+# Compare Wilches with VargasDiazGranados
 
-    data = MaxAnual(Estaciones[i], Path_series)
-    dP, Idq = Pulgarin(data, Tr, theta)
-    GraphIDF(Idq, dP, Tr, cmap_name='jet', name=Nombre+'IDF', pdf=True, png=False, PathFigs=Path_IDF,)
-    IDF = pd.DataFrame(Idq, index=dP, columns=Tr)
-    IDF.to_csv(os.path.join(Path_IDF,Estaciones[i]))
+Nombre = 'CARMEN DE BOLIVAR [29015020]'
+
+data = MaxAnual(Nombre+'.csv', Path_series)
+dP, Idq = Pulgarin(data, Tr, theta)
+dV, IdV = VargasDiazGranados(data, Tr, Region=2)
+Dif = Idq-IdV
+GraphIDF(Idq, dP, Tr, cmap_name='jet', name=Nombre+'IDF_Pulgarin', pdf=True, png=False, PathFigs=Path_IDF,)
+GraphIDF(IdV, dV, Tr, cmap_name='jet', name=Nombre+'IDF_Vargas',   pdf=True, png=False, PathFigs=Path_IDF,)
+GraphIDF(Dif, dV, Tr, cmap_name='jet', name=Nombre+'IDF_Difference',pdf=True, png=False, PathFigs=Path_IDF,)
+IDF_P = pd.DataFrame(Idq, index=dP, columns=Tr)
+IDF_V = pd.DataFrame(IdV, index=dV, columns=Tr)
+IDF_d = pd.DataFrame(Dif, index=dV, columns=Tr)
+IDF_P.to_csv(os.path.join(Path_IDF,Nombre+'_Purlgarin.csv'))
+IDF_V.to_csv(os.path.join(Path_IDF,Nombre+'_Vargas.csv'))
+IDF_d.to_csv(os.path.join(Path_IDF,Nombre+'_Difference.csv'))
+
+
+
+
 
 
 # # Load annual 24-h maximum rainfall series

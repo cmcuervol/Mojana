@@ -32,9 +32,11 @@ Lq    = [NORMq, EXPq, GUMq, GPAq, GEVq, GLOq, LLOG3q, LP3q]
 ################################   INPUT   #####################################
 
 Path_dat = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Datos/csv/'))
-Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
+# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
+Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Ajustes'))
 
+Read.SplitAllIDEAM('NivelReal', Est_path=Est_path,Nivel=True)  
 def MaxAnual(Esta, Path_series):
     """
     Read estation to extract the anual max value
