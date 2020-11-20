@@ -11,7 +11,8 @@ from Modules.Utils import Listador, FindOutlier
 from Modules.Graphs import DurationCurve
 
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'DurationCurve'))
-Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
+# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
+Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
 
 Estaciones = Listador(Est_path,final='.csv')
 

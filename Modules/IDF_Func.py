@@ -196,7 +196,7 @@ def Pulgarin(data, Tr, theta, Namefig=None, Path_Figs=None):
 
         plt.xlim([0,250])
         plt.ylabel('Intensidad [mm/h]', fontsize = fontsize, labelpad = 0.)
-        plt.xlabel(u'Duración [min]', fontsize = fontsize, labelpad = 0.)
+        plt.xlabel(u'Duración [min]',   fontsize = fontsize, labelpad = 0.)
         plt.tick_params(axis='x', which='both', labelsize=fontsize)
         plt.tick_params(axis='y', which='both', labelsize=fontsize)
         ax0.tick_params('both', length=5, width = 1.5, which='major')
@@ -205,10 +205,77 @@ def Pulgarin(data, Tr, theta, Namefig=None, Path_Figs=None):
         for axis in ['top','bottom','left','right']:
              ax0.spines[axis].set_linewidth(1.5)
 
-#        ax0.legend(loc = 'center', bbox_to_anchor=(0.9, 0.5), ncol = 1, columnspacing=0.5,
-#                   handletextpad=0.1, numpoints = 1, handlelength=1.5, fontsize = fontsize-1,
-#                   scatterpoints = 1, frameon = False)
-
         plt.savefig(os.path.join(Path_Figs,Namefig+'IDF_Pulgarin.png'), dpi = 400)
+
+    return d, Idq
+
+def VargasDiazGranados(data, Tr, Region, Namefig=None, Path_Figs=None):
+    """
+    Make IDF with Vargas Diaz Granados method 1998
+    INPUTS
+    data      : Anual max precipitation
+    Tr        : return period
+    Region    : integer to choose on of the followin regions
+                Andina (R1)     0.94,0.18,0.66,0.83
+                Caribe (R2)    24.85,0.22,0.5, 0.1
+                Pacifico (R3)  13.92,0.19,0.58,0.2
+                Orinoquia (R4)  5.53,0.17,0.63,0.42
+    NameFig   : string to save figure
+    Path_Figs : Absolute route to save figure
+    """
+
+
+    coef = np.array([[ 0.94,0.18,0.66,0.83],
+                     [24.85,0.22,0.5, 0.1 ],
+                     [13.92,0.19,0.58,0.2 ],
+                     [ 5.53,0.17,0.63,0.42]])
+    idR = Region -1
+    dlim1 = 1440
+    dlim2 = 60
+    dlim3 = 5
+    d1 = np.arange(dlim2, dlim1, 5)
+    d2 = np.arange(dlim3, dlim2, 2.5)
+    d = np.hstack((d2, d1))
+    M = np.nanmean(data)
+
+    Idq = np.zeros((len(d),len(Tr)),dtype=float)
+
+    for i in range(len(Tr)):
+        Idq[:,i] = coef[idR,0]*(Tr[i]**coef[idR,1])*(M**coef[idR,3])/((d/60)**coef[idR,2])
+
+    ################################   FIGURE   ################################
+
+    if Namefig is not None:
+
+        import matplotlib
+        from matplotlib import gridspec
+        matplotlib.rc('text', usetex = False)
+        import matplotlib.pyplot as plt
+        plt.rc('font',family='Times New Roman')
+
+        # Start figure and subfigures
+        fig = plt.figure(figsize=(9, 5))
+        gs = gridspec.GridSpec(1, 1)
+        gs.update(left = 0.07, right = 0.955, top = 0.965, bottom = 0.1, hspace=0.06, wspace = 0.04)
+
+        fontsize = 15
+
+        ax0 = plt.subplot(gs[0])
+        for i in range(len(Tr)):
+            plt.plot(d, Idq[:,i], color = 'b', lw = 2.2)
+        #    plt.plot(d, Idq[:,i], color = 'k', lw = 1.2)
+
+        plt.xlim([0,250])
+        plt.ylabel('Intensidad [mm/h]', fontsize = fontsize, labelpad = 0.)
+        plt.xlabel(u'Duración [min]',   fontsize = fontsize, labelpad = 0.)
+        plt.tick_params(axis='x', which='both', labelsize=fontsize)
+        plt.tick_params(axis='y', which='both', labelsize=fontsize)
+        ax0.tick_params('both', length=5, width = 1.5, which='major')
+        #plt.setp(ax0.get_xticklabels(), visible=False)
+        #plt.setp(ax0.get_yticklabels(), visible=False)
+        for axis in ['top','bottom','left','right']:
+             ax0.spines[axis].set_linewidth(1.5)
+
+        plt.savefig(os.path.join(Path_Figs,Namefig+'IDF_VargasDiazGranados.png'), dpi = 400)
 
     return d, Idq

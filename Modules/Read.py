@@ -17,7 +17,7 @@ Est_dir  = os.path.abspath(os.path.join(os.path.dirname(__file__), '../Datos/'))
 Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../CleanData/'))
 
 
-def SplitAllIDEAM(Depatamento=None, sept=',', Est_dir=Est_dir, Est_path=Est_path):
+def SplitAllIDEAM(Depatamento=None, sept=',', Est_dir=Est_dir, Est_path=Est_path, Nivel=False):
     """
     Split Files downloaded with various estaciones in each file to create a file
     with data and another with metadata
@@ -47,7 +47,10 @@ def SplitAllIDEAM(Depatamento=None, sept=',', Est_dir=Est_dir, Est_path=Est_path
         Files = Listador(Dep_dir,final='.csv')
 
         for archivo in Files:
-            SplitIDEAMfile(os.path.join(Dep_dir,archivo), sept, Est_path)
+            if Nivel == True:
+                SplitIDEAMnivel(os.path.join(Dep_dir,archivo), sept, Est_path)
+            else:
+                SplitIDEAMfile(os.path.join(Dep_dir,archivo), sept, Est_path)
         pbar.update(1)
     pbar.close()
 
@@ -86,6 +89,42 @@ def SplitIDEAMfile(filename, sept=',', Est_path=Est_path):
 
         PPT.to_csv(f'{os.path.join(Est_path,str(Est_ID))}.csv')
         WriteDict(meta, f'{os.path.join(Est_path,str(Est_ID))}.meta', sept=',')
+
+def SplitIDEAMnivel(filename, sept=',', Est_path=Est_path):
+    """
+    Split an IDEAM file with some estaciones, to create a file of data an metadata for each estacion
+    INPUTS
+    filename : absolute path, name and extension of the file
+    sept     : strign of columns's separation
+    Est_path : Path where the procesed data will save
+    """
+    Dat = pd.read_csv(filename, sep=sept)
+    print(filename)
+    for Est_ID in np.unique(Dat.CodigoEstacion.values) :
+        idx = np.where(Dat.CodigoEstacion.values==Est_ID)[0]
+        meta = {'Parametro': 'Valor'}
+        meta['NombreEstacion'  ] = np.unique(Dat.NombreEstacion  .iloc[idx])[0].replace(',','-')
+        meta['Latitud'         ] = np.unique(Dat.Latitud         .iloc[idx])[0]
+        meta['Longitud'        ] = np.unique(Dat.Longitud        .iloc[idx])[0]
+        meta['Altitud'         ] = np.unique(Dat.Altitud         .iloc[idx])[0]
+        meta['Categoria'       ] = np.unique(Dat.Categoria       .iloc[idx])[0].replace(',','-')
+        meta['Entidad'         ] = np.unique(Dat.Entidad         .iloc[idx])[0].replace(',','-')
+        meta['AreaOperativa'   ] = np.unique(Dat.AreaOperativa   .iloc[idx])[0].replace(',','-')
+        meta['Departamento'    ] = np.unique(Dat.Departamento    .iloc[idx])[0].replace(',','-')
+        meta['Municipio'       ] = np.unique(Dat.Municipio       .iloc[idx])[0].replace(',','-')
+        meta['FechaInstalacion'] = np.unique(Dat.FechaInstalacion.iloc[idx])[0]
+        meta['FechaSuspension' ] = np.unique(Dat.FechaSuspension .iloc[idx])[0]
+        meta['IdParametro'     ] = np.unique(Dat.IdParametro     .iloc[idx])[0].replace(',','-')
+        meta['Etiqueta'        ] = np.unique(Dat.Etiqueta        .iloc[idx])[0].replace(',','-')
+        meta['DescripcionSerie'] = np.unique(Dat.DescripcionSerie.iloc[idx])[0].replace(',','-')
+        meta['Frecuencia'      ] = np.unique(Dat.Frecuencia      .iloc[idx])[0].replace(',','-')
+
+        PPT = pd.DataFrame(Dat[['Nivel real', 'Grado','Calificador', 'NivelAprobacion']].iloc[idx].values,
+                           index = pd.DatetimeIndex(Dat.Fecha.iloc[idx]),
+                           columns = ['Valor', 'Grado','Calificador', 'NivelAprobacion'])
+
+        PPT.to_csv(f'{os.path.join(Est_path,str(Est_ID))}NR.csv')
+        WriteDict(meta, f'{os.path.join(Est_path,str(Est_ID))}NR.meta', sept=',')
 
 
 def EstacionCSV_np(name, col_name, path=Est_path):
