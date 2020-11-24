@@ -279,3 +279,62 @@ def VargasDiazGranados(data, Tr, Region, Namefig=None, Path_Figs=None):
         plt.savefig(os.path.join(Path_Figs,Namefig+'IDF_VargasDiazGranados.png'), dpi = 400)
 
     return d, Idq
+
+def IDEAM(Tr, X0, C1, C2, Namefig=None, Path_Figs=None):
+    """
+    Make IDF with IDEAM methodology
+    INPUTS
+    Tr        : return period
+    X0        : Array of params
+    C1        : Array of params
+    C2        : Array of params
+    NameFig   : string to save figure
+    Path_Figs : Absolute route to save figure
+    """
+    dlim1 = 1440
+    dlim2 = 60
+    dlim3 = 5
+    d1 = np.arange(dlim2, dlim1, 5)
+    d2 = np.arange(dlim3, dlim2, 2.5)
+    d = np.hstack((d2, d1))
+    
+    Idq = np.zeros((len(d),len(Tr)),dtype=float)
+
+    for i in range(len(Tr)):
+        Idq[:,i] = C1[i]/((d+X0[i])**C2[i])
+    ################################   FIGURE   ################################
+
+    if Namefig is not None:
+
+        import matplotlib
+        from matplotlib import gridspec
+        matplotlib.rc('text', usetex = False)
+        import matplotlib.pyplot as plt
+        plt.rc('font',family='Times New Roman')
+
+        # Start figure and subfigures
+        fig = plt.figure(figsize=(9, 5))
+        gs = gridspec.GridSpec(1, 1)
+        gs.update(left = 0.07, right = 0.955, top = 0.965, bottom = 0.1, hspace=0.06, wspace = 0.04)
+
+        fontsize = 15
+
+        ax0 = plt.subplot(gs[0])
+        for i in range(len(Tr)):
+            plt.plot(d, Idq[:,i], color = 'b', lw = 2.2)
+        #    plt.plot(d, Idq[:,i], color = 'k', lw = 1.2)
+
+        plt.xlim([0,250])
+        plt.ylabel('Intensidad [mm/h]', fontsize = fontsize, labelpad = 0.)
+        plt.xlabel(u'Duración [min]',   fontsize = fontsize, labelpad = 0.)
+        plt.tick_params(axis='x', which='both', labelsize=fontsize)
+        plt.tick_params(axis='y', which='both', labelsize=fontsize)
+        ax0.tick_params('both', length=5, width = 1.5, which='major')
+        #plt.setp(ax0.get_xticklabels(), visible=False)
+        #plt.setp(ax0.get_yticklabels(), visible=False)
+        for axis in ['top','bottom','left','right']:
+             ax0.spines[axis].set_linewidth(1.5)
+
+        plt.savefig(os.path.join(Path_Figs,Namefig+'IDF_IDEAM.png'), dpi = 400)
+
+    return d, Idq

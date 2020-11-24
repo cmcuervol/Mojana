@@ -10,6 +10,7 @@ import pandas as pd
 from Modules.IDF_Func import Wilches
 from Modules.IDF_Func import Pulgarin
 from Modules.IDF_Func import VargasDiazGranados
+from Modules.IDF_Func import IDEAM
 from Modules.Utils import Listador
 from Modules import Read
 
@@ -105,26 +106,86 @@ theta = -0.82
 #
 
 # Compare Wilches with VargasDiazGranados
+Tr = np.array([2,3,5,10,25,50,100])
 
 Nombre = 'CARMEN DE BOLIVAR [29015020]'
+# IDEAM params
+C1 = [6798.308,9998.576,14882.323,23468.705,39184.485,55085.160,75025.218]
+X0 = [27.895,32.735,37.828,43.764,50.544,55.091,59.234]
+C2 = [1.112,1.159,1.207,1.263,1.325,1.366,1.403]
 
 data = MaxAnual(Nombre+'.csv', Path_series)
 dP, Idq = Pulgarin(data, Tr, theta)
 dV, IdV = VargasDiazGranados(data, Tr, Region=2)
-Dif = Idq-IdV
-GraphIDF(Idq, dP, Tr, cmap_name='jet', name=Nombre+'IDF_Pulgarin', pdf=True, png=False, PathFigs=Path_IDF,)
-GraphIDF(IdV, dV, Tr, cmap_name='jet', name=Nombre+'IDF_Vargas',   pdf=True, png=False, PathFigs=Path_IDF,)
-GraphIDF(Dif, dV, Tr, cmap_name='jet', name=Nombre+'IDF_Difference',pdf=True, png=False, PathFigs=Path_IDF,)
+dI, Ida = IDEAM(Tr, X0,C1,C2)
+DiP = Ida-Idq
+DiV = Ida-IdV
+GraphIDF(Idq, dP, Tr, cmap_name='jet', name=Nombre+'IDF_Pulgarin',   pdf=True, png=False, PathFigs=Path_IDF,)
+GraphIDF(IdV, dV, Tr, cmap_name='jet', name=Nombre+'IDF_Vargas',     pdf=True, png=False, PathFigs=Path_IDF,)
+GraphIDF(Ida, dI, Tr, cmap_name='jet', name=Nombre+'IDF_IDEAM',      pdf=True, png=False, PathFigs=Path_IDF,)
+GraphIDF(DiV, dV, Tr, cmap_name='jet', name=Nombre+'IDF_DifVargas',  pdf=True, png=False, PathFigs=Path_IDF,)
+GraphIDF(DiP, dV, Tr, cmap_name='jet', name=Nombre+'IDF_DifPulgarin',pdf=True, png=False, PathFigs=Path_IDF,)
 IDF_P = pd.DataFrame(Idq, index=dP, columns=Tr)
 IDF_V = pd.DataFrame(IdV, index=dV, columns=Tr)
-IDF_d = pd.DataFrame(Dif, index=dV, columns=Tr)
+IDF_A = pd.DataFrame(Ida, index=dI, columns=Tr)
+IDF_p = pd.DataFrame(DiP, index=dP, columns=Tr)
+IDF_v = pd.DataFrame(DiV, index=dV, columns=Tr)
 IDF_P.to_csv(os.path.join(Path_IDF,Nombre+'_Purlgarin.csv'))
 IDF_V.to_csv(os.path.join(Path_IDF,Nombre+'_Vargas.csv'))
-IDF_d.to_csv(os.path.join(Path_IDF,Nombre+'_Difference.csv'))
+IDF_A.to_csv(os.path.join(Path_IDF,Nombre+'_IDEAM.csv'))
+IDF_p.to_csv(os.path.join(Path_IDF,Nombre+'_DifVargas.csv'))
+IDF_v.to_csv(os.path.join(Path_IDF,Nombre+'_DifPulgarin.csv'))
 
 
+cmap_name = 'jet'
+pdf = True
+png = False
+PathFigs = Path_IDF
+name=Nombre+'IDF_all'
+# define some random data that emulates your indeded code:
+NCURVES = len(Tr)
+plt.close('all')
+fig = plt.figure(figsize=(12.8,8))
+ax = fig.add_subplot(111)
+cNorm  = colors.Normalize(vmin=0, vmax=NCURVES)
+scalarMap = cm.ScalarMappable(norm=cNorm, cmap=plt.get_cmap(cmap_name))
 
+lines = []
+for idx in range(NCURVES):
+    line = Ida[:, idx]
+    colorVal  = scalarMap.to_rgba(idx)
+    colorText = f'IDEAM    {Tr[idx]} years'
+    retLine,  = ax.plot(dI,line, linewidth=2,
+                        color=colorVal,
+                        label=colorText)
+    lines.append(retLine)
 
+    ax.scatter(dV, IdV[:, idx], marker='*', s=10 ,c=colorVal, label=f'Pulgarin {Tr[idx]} years')
+    ax.scatter(dP, Idq[:, idx], marker='o', s=10 ,c=colorVal, label=f'Vargas   {Tr[idx]} years')
+#added this to get the legend to work
+handles,labels = ax.get_legend_handles_labels()
+
+# # Shrink current axis by 20%
+# box = ax.get_position()
+# ax.set_position([box.x0, box.y0, box.width*1.0, box.height])
+ax.legend(handles, labels, loc='center right', bbox_to_anchor=(1, 0.5),
+          fancybox=False, shadow=False)
+
+ax.set_xlabel('Duration [minutes]',)
+ax.set_ylabel('Intensity [mm/hour]')
+
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+# ax.spines['bottom'].set_visible(False)
+# ax.spines['left'].set_visible(False)
+if pdf == True:
+    plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+    if png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+elif png == True:
+    plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+else:
+    print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
 
 
 # # Load annual 24-h maximum rainfall series
