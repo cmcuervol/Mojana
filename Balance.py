@@ -42,16 +42,19 @@ Armen_LM, Armen_MEL, Armen_dist = QuantilBestFit(Armen_max.dropna().values, Tr=T
 Cruz3_LM, Cruz3_MEL, Cruz3_dist = QuantilBestFit(Cruz3_max.dropna().values, Tr=Tr)
 Monte_LM, Monte_MEL, Monte_dist = QuantilBestFit(Monte_max.dropna().values, Tr=Tr)
 
-Magan_q =  np.max([Magan_LM, Magan_MEL], axis=0)
-Barbo_q =  np.max([Barbo_LM, Barbo_MEL], axis=0)
-Armen_q =  np.max([Armen_LM, Armen_MEL], axis=0)
-Cruz3_q =  np.max([Cruz3_LM, Cruz3_MEL], axis=0)
-Monte_q =  np.max([Monte_LM, Monte_MEL], axis=0)
+Magan_q = np.max([Magan_LM, Magan_MEL], axis=0)
+Barbo_q = np.max([Barbo_LM, Barbo_MEL], axis=0)
+Armen_q = np.max([Armen_LM, Armen_MEL], axis=0)
+Cruz3_q = np.max([Cruz3_LM, Cruz3_MEL], axis=0)
+Monte_q = np.max([Monte_LM, Monte_MEL], axis=0)
 
 SJorg1 = Magan_q - Barbo_q
 SJorg2 = Magan_q - Armen_q - Cruz3_q
 
-SJorg = pd.DataFrame(np.array([SJorg1,SJorg2]).T, index=Tr, columns=['Magangue - Barbosa','Magangue - Armenia - Tres Cruces'])
+# SJorg = pd.DataFrame(np.array([SJorg1,SJorg2]).T, index=Tr, columns=['Magangue - Barbosa','Magangue - Armenia - Tres Cruces'])
+SJ = [Magan_q,Barbo_q,Armen_q,Cruz3_q,Monte_q,SJorg1,SJorg2]
+
+SJorg = pd.DataFrame(np.array(SJ).T, index=Tr, columns=['Magangue', 'Barbosa', 'Armenia', 'Tres Cruces', 'Montelibano', 'Magangue - Barbosa','Magangue - Armenia - Tres Cruces'])
 SJorg.to_csv(os.path.join(Path_out,'BalanceSanJorgeTr.csv'))
 
 import matplotlib

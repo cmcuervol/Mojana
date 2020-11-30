@@ -32,11 +32,11 @@ Lq    = [NORMq, EXPq, GUMq, GPAq, GEVq, GLOq, LLOG3q, LP3q]
 ################################   INPUT   #####################################
 
 Path_dat = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Datos/csv/'))
-# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
-Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
+Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
+# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Ajustes'))
 
-Read.SplitAllIDEAM('NivelReal', Est_path=Est_path,Nivel=True)  
+# Read.SplitAllIDEAM('NivelReal', Est_path=Est_path,Nivel=True)
 def MaxAnual(Esta, Path_series):
     """
     Read estation to extract the anual max value
@@ -60,6 +60,10 @@ def MaxAnual(Esta, Path_series):
 Estaciones = Listador(Est_path,final='.csv')
 # idx = np.where(np.array(Estaciones) == '25027220N.csv')[0]
 # for i in idx:
+Tr = np.array([2.33, 5, 10, 25, 50, 100, 200, 500, 1000])
+q = 1. - 1./Tr
+Resumen = pd.DataFrame([], columns=Tr)
+SK_resm = pd.DataFrame([])
 for i in range(len(Estaciones)):
 
     Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
@@ -298,8 +302,6 @@ for i in range(len(Estaciones)):
         locLM, scaleLM, shapeLM = paramsLM[index,:]
         distMEL = getattr(st, dist_names[index])
         distLM  = Lq[index]
-        Tr = np.array([2.33, 5, 10, 25, 50, 100, 200, 500, 1000])
-        q = 1. - 1./Tr
 
         try:
             # Quantiles MEL
@@ -398,5 +400,18 @@ for i in range(len(Estaciones)):
 
         cuantiles = pd.DataFrame( np.array([quant_LM,quant_MEL]).T, index = Tr, columns=['LM', 'MEL'])
         cuantiles.to_csv(os.path.join(Path_out,'Cuantiles_' + Est + '.csv'))
+
+        quant = pd.Series(quant_LM,name=Est+'_LM', index=Tr)
+        Resumen = Resumen.append(quant)
+        quant = pd.Series(quant_MEL,name=Est+'_MEL', index=Tr)
+        Resumen = Resumen.append(quant)
+
+        SK_LM   = pd.Series(df.ks_MEL,name=Est+'_LM')
+        SK_resm = SK_resm.append(SK_LM)
+        SK_MEL  = pd.Series(df.ks_MEL,name=Est+'_MEL')
+        SK_resm = SK_resm.append(SK_MEL)
     except:
         continue
+
+Resumen.to_csv(os.path.join(Path_out,'ResumenCuantiles.csv'))
+SK_resm.to_csv(os.path.join(Path_out,'ResumenSK.csv'))
