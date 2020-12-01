@@ -25,12 +25,13 @@ dist = np.empty(len(Estaciones), dtype='<U15')
 
 # ['mean', 'max', 'min', 'sum', 'count']
 
+# Factor = [1.37, 1, 2.86, 1.88, 2.24,1,1.66,4.03]
 Hydrogram = []
 MaxHydro  = []
 for i in range(len(Estaciones)):
 
     S_yearly = pd.read_csv(os.path.join(Path_yearly,Estaciones[i]), index_col = 0, header = 0)
-
+    # S_yearly = S_yearly * Factor[i]
     Q_LM[i], Q_MEL[i], dist[i] = QuantilBestFit(S_yearly['max'].dropna().values, Tr=2.33)
 
     Q = np.max((Q_LM[i], Q_MEL[i]))
@@ -38,7 +39,7 @@ for i in range(len(Estaciones)):
     code = Estaciones[i].split('[')[-1].split(']')[0]
     S_diurnal = Read.EstacionCSV_pd(code+'.csv', Estaciones[i].split('.csv')[0], Est_path)
     # S_diurnal = S_diurnal.sort_index
-
+    # S_diurnal = S_diurnal * Factor[i]
     idh = np.where(S_diurnal.values >Q)[0] # superan umbral
 
     ide = Salto(idh, 1, condition='>') #identificar eventos
@@ -87,7 +88,7 @@ for i in range(len(Estaciones)):
     GraphEvents(q,Unitarian=False,
                 name='Events_'+Estaciones[i].replace(' ', '').split('.csv')[0],
                 PathFigs=Path_out )
-    GraphEvents(q,Unitarian=True,  
+    GraphEvents(q,Unitarian=True,
                 name='EventsUnit_'+Estaciones[i].replace(' ', '').split('.csv')[0],
                 PathFigs=Path_out )
 
