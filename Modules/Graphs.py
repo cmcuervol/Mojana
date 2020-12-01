@@ -51,6 +51,7 @@ verdeos = '#018571'
 azul    = '#2c7bb6'
 verde   = '#1a9641'
 morado  = '#5e3c99'
+magenta = '#dd3497'
 
 Path = os.getcwd()
 
@@ -723,6 +724,69 @@ def DurationCurve(T_super, Values, label='', title='', name='DurationCurve', pdf
     ax.set_xlabel('Porcentaje de excedencia')
 
     ax.set_title(title)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
+
+
+
+def GraphDataFrames(DFs, Names, col, label=None, cmap_name='nipy_spectral',
+                    name='Sediments', pdf=True, png=False, PathFigs=Path,):
+    """
+    Graph several DataFrames
+    INPUTS
+    DFs       : List of DataFrames
+    Names     : List with names of each DataFrame
+    col       : integer of column number to graph
+    label     : String to put as y-label, default is the name of column choosen
+    cmap_name : color map name
+    name      : stringo for save the figure
+    Path      : abtolute Path to save files
+    """
+
+    # define some random data that emulates your indeded code:
+    NCURVES = len(DFs)
+    plt.close('all')
+    fig = plt.figure(figsize=(12.8,8))
+    ax = fig.add_subplot(111)
+    cNorm  = colors.Normalize(vmin=0, vmax=NCURVES)
+    scalarMap = cm.ScalarMappable(norm=cNorm, cmap=plt.get_cmap(cmap_name))
+
+    lines = []
+    for idx in range(NCURVES):
+        colorVal  = scalarMap.to_rgba(idx)
+        colorText = Names[idx]
+        retLine,  = ax.plot(DFs[idx].iloc[:,col],
+                            linewidth=2,
+                            color=colorVal,
+                            label=colorText)
+        lines.append(retLine)
+    #added this to get the legend to work
+    handles,labels = ax.get_legend_handles_labels()
+
+    # # Shrink current axis by 20%
+    # box = ax.get_position()
+    # ax.set_position([box.x0, box.y0, box.width*1.0, box.height])
+    ax.legend(handles, labels, loc='center right', bbox_to_anchor=(1, 0.5),
+              fancybox=False, shadow=False)
+
+    # ax.set_xlabel('Duration [minutes]',)
+    if label is None:
+        ax.set_ylabel(DFs[0].columns[col])
+    else:
+        ax.set_ylabel(label)
+
+
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     # ax.spines['bottom'].set_visible(False)
