@@ -16,6 +16,8 @@ from Utils import Listador, datetimer, WriteDict
 Est_dir  = os.path.abspath(os.path.join(os.path.dirname(__file__), '../Datos/'))
 Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../CleanData/'))
 
+Sed_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../Datos/Sedimentos/'))
+Sed_out = os.path.abspath(os.path.join(os.path.dirname(__file__), '../CleanSedimentos/'))
 
 def SplitAllIDEAM(Depatamento=None, sept=',', Est_dir=Est_dir, Est_path=Est_path, Nivel=False):
     """
@@ -317,3 +319,107 @@ def ReadMeta(Path=Est_path, extension='.meta'):
     Meta = pd.DataFrame(vals, index= indx, columns=cols)
 
     return Meta
+
+
+def resolidos(Path_est, Path_out=Sed_out):
+    """
+    Read file resolidos
+    """
+    File = Listador(Path_est, inicio='resolidos', final='.csv')
+    arch = os.path.join(Path_est, File[0])
+    Dat = pd.read_csv(arch,index_col=0)
+    Dat.index = pd.DatetimeIndex(Dat.index)
+
+    Dat.to_csv(os.path.join(Path_out, File[0]), sep=',')
+
+    return Dat
+
+def MonthSediments(Path_est, Path_out=Sed_out):
+    """
+    Read File of monthly sedimets
+    """
+    File = Listador(Path_est, inicio='Valores_mensuales', final='.csv')
+    arch = os.path.join(Path_est, File[0])
+    Dat = pd.read_csv(arch,index_col=0)
+
+    date = []
+    Vals = Dat.values.reshape(Dat.shape[0]*Dat.shape[1])
+    for i in range(Dat.shape[0]):
+        for j in range(Dat.shape[1]):
+            fecha = dt.datetime(Dat.index[i], j+1, 1)
+            date.append(fecha)
+
+    Datos = pd.DataFrame(Vals, index=date, columns=[' VALORES TOTALES MENSUALES DE TRANSPORTE (KTon/Dia)'])
+    Datos.to_csv(os.path.join(Path_out, File[0]), sep=',')
+
+    return Datos
+
+def idinclude(year):
+    """
+    Make a list of indexes to exclude in a year of 31*12
+    """
+    c = 0
+    inclu = []
+    for m in range(12):
+        for d in range(31):
+
+            try:
+                dt.datetime(year,m+1,d+1)
+                inclu.append(c)
+            except:
+                pass
+            c+=1
+    return inclu
+
+
+def  TransSediments(Path_est, Path_out=Sed_out):
+    """
+    Read File of monthly sedimets
+    """
+    File = Listador(Path_est, inicio='Trans', final='.csv')
+    arch = os.path.join(Path_est, File[0])
+    Dat = pd.read_csv(arch,index_col=0)
+
+    Years = np.unique(Dat.index)
+
+    for y in Years:
+        init  = dt.datetime(y,1,1)
+        end   = dt.datetime(y,12,31)
+        dates = datetimer(init,end,24)
+        dates = np.array(dates)
+
+        include = idinclude(y)
+        idy = np.where(Dat.index==y)[0]
+
+        v = Dat.iloc[idy, 1:]
+        V = v.values.reshape(31*12, order='F')
+        V = V[include]
+
+        df = pd.DataFrame(V, index=dates)
+        if y == Years[0]:
+            Vals = pd.DataFrame(V, index=dates)
+        else:
+            Vals = Vals.append(df)
+
+    Vals.to_csv(os.path.join(Path_out, File[0]), sep=',')
+
+    return Vals
+
+
+def CleanSediments(Sed_dir=Sed_dir, Sed_out=Sed_out):
+    """
+    """
+    Estaciones = Listador(Sed_dir)
+    if '.DS_Store' in Estaciones:
+        Estaciones.remove('.DS_Store')
+    if 'Icon\r' in Estaciones:
+        Estaciones.remove('Icon\r')
+
+    gauge = Estaciones[0]
+    Est = os.path.join(Sed_dir, gauge)
+
+    for est in Estaciones:
+        Est = os.path.join(Sed_dir, est)
+        Campain = resolidos     (Path_est=Est, Path_out=Sed_out)
+        Monthly = MonthSediments(Path_est=Est, Path_out=Sed_out)
+        Diurnal = TransSediments(Path_est=Est, Path_out=Sed_out)
