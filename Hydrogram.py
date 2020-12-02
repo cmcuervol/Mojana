@@ -10,7 +10,7 @@ import datetime as dt
 from Modules import Read
 from Modules.FitStats import BestFit, QuantilBestFit
 from Modules.Utils import Listador, Salto, HistogramValues
-from Modules.Graphs import GraphHistrogram, GraphEvents
+from Modules.Graphs import GraphHistrogram, GraphEvents, GraphScatter
 
 Path_yearly = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Datos/Anuales/'))
 Path_out    = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Hydrograms'))
@@ -92,7 +92,19 @@ for i in range(len(Estaciones)):
                 name='EventsUnit_'+Estaciones[i].replace(' ', '').split('.csv')[0],
                 PathFigs=Path_out )
 
-    Hydrogram.append(evn)
+    GraphScatter(evn[:,1],evn[:,3],
+                 xlabel='Caudal pico [m$^{3}$ s$^{-1}$]',
+                 ylabel='Volumen [m$^{3}$]',
+                 title=Estaciones[i].split('.csv')[0],
+                 name='ScatterQV_'+Estaciones[i].replace(' ', '').split('.csv')[0],
+                 pdf=False, png=True, PathFigs=Path_out,)
+    GraphScatter(evn[:,3],evn[:,4],
+                 xlabel='Volumen [m$^{3}$]',
+                 ylabel='Duración creciente [dias]',
+                 title=Estaciones[i].split('.csv')[0],
+                 name='ScatterVD_'+Estaciones[i].replace(' ', '').split('.csv')[0],
+                 pdf=False, png=True, PathFigs=Path_out,)
 
+    Hydrogram.append(evn)
 Params = pd.DataFrame(MaxHydro, columns=['Basin', 'Peak', 'PeakTime [hours]', 'Duration [days]', 'Volumen'])
 Params.to_csv(os.path.join(Path_out,'HydrogramParams.csv'))
