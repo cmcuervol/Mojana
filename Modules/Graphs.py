@@ -785,7 +785,81 @@ def GraphDataFrames(DFs, Names, col, label=None, cmap_name='nipy_spectral',
         ax.set_ylabel(DFs[0].columns[col])
     else:
         ax.set_ylabel(label)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
 
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
+
+def GraphSingleDF(DF, label=None, title='', color=azul,
+                  name='Sediments', pdf=True, png=False, PathFigs=Path,):
+    """
+    Graph single DataFrames
+    INPUTS
+    DFs       : DataFrames
+    label     : String to put as y-label, default is the name of column choosen
+    name      : stringo for save the figure
+    Path      : abtolute Path to save files
+    """
+
+    # define some random data that emulates your indeded code:
+    plt.close('all')
+    fig = plt.figure(figsize=(12.8,8))
+    ax = fig.add_subplot(111)
+
+    ax.plot(DF,linewidth=2,color=color)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
+
+    if label is None:
+        ax.set_ylabel(DF[0].columns[col])
+    else:
+        ax.set_ylabel(label)
+    ax.set_title(title)
+
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
+def GraphCorrelogram(Corr, title='', color=rojo,
+                     name='Correlogram', pdf=True, png=False, PathFigs=Path,):
+    """
+    Graph correlogram
+    INPUTS
+    Corr      : Array with correlation
+    label     : String to put as y-label, default is the name of column choosen
+    name      : stringo for save the figure
+    Path      : abtolute Path to save files
+    """
+
+    # define some random data that emulates your indeded code:
+    plt.close('all')
+    fig = plt.figure(figsize=(12.8,8))
+    ax = fig.add_subplot(111)
+
+    ax.plot(Corr,linewidth=2,color=color)
+
+    ax.set_xlabel('Rezago')
+    ax.set_ylabel(u'Correlación')
+    ax.set_title(title)
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
