@@ -7,11 +7,13 @@ Created on Sun Oct 11 18:00:30 2020
 import os
 import numpy as np
 import pandas as pd
+import datetime as dt
 import scipy.stats as st
 import pylab as plt
 
 from Modules import Read
 from Modules.Utils import Listador, FindOutlier
+from ENSO import ONIdata
 ############################   L-moments functions   ###########################
 
 from Modules.Lmoments import Lmom, Lmom1
@@ -29,11 +31,37 @@ Ldist = [Lnorm, Lexp, Lgumbel, LGPA, LGEV, LGLO, LLOG3, LP3]
 LCDF  = [NORMcdf, EXPcdf, GUMcdf, GPAcdf, GEVcdf, GLOcdf, LLOG3cdf, LP3cdf]
 Lq    = [NORMq, EXPq, GUMq, GPAq, GEVq, GLOq, LLOG3q, LP3q]
 
+ONI = ONIdata()
+ONI = ONI['Anomalie'].astype(float)
+ENSO = ONI[np.where((ONI.values<=-0.5)|(ONI.values>=0.5))[0]]
+
+def OuliersENSOjust(Serie, ENSO=ENSO, lim_inf=0):
+    """
+    Remove  ouliers with the function find ouliers and justify the values in ENSO periods
+    INPUTS
+    Serie : Pandas DataFrame or pandas Series with index as datetime
+    ENSO  : Pandas DataFrame with the index of dates of ENSO periods
+    lim_inf : limit at the bottom for the ouliers
+    OUTPUTS
+    S : DataFrame without ouliers outside ENSO periods
+    """
+
+    idx = FindOutlier(Serie, clean=False, index=True, lims=False, restrict_inf=lim_inf)
+    injust = []
+    for ii in idx:
+        month = dt.datetime(Serie.index[ii].year,Serie.index[ii].month, 1)
+        if month not in ENSO.index:
+            injust.append(ii)
+
+    if  len(injust) == 0:
+        S = Serie
+    else:
+        S = Serie.drop(Serie.index[injust])
+    return S
 ################################   INPUT   #####################################
 
-Path_dat = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Datos/csv/'))
-Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
-# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
+# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
+Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Ajustes'))
 
 # Read.SplitAllIDEAM('NivelReal', Est_path=Est_path,Nivel=True)
@@ -46,17 +74,6 @@ def MaxAnual(Esta, Path_series):
 
     return Max[~np.isnan(Max.values)].values.ravel()
 
-# Est = 'SanMarcos'
-# data = pd.read_csv(Est + '.csv', index_col = 0, header = 0, low_memory=False)
-# #dates = data.index
-# #times = [plt.date2num(dt.datetime.strptime(d,'%Y-%m-%d')) for d in dates]
-# #dates = [dt.datetime.strptime(d,'%Y-%m-%d') for d in dates]
-# try:
-#     serie = np.asarray(data.iloc[:,1])
-# except:
-#     serie = np.asarray(data.iloc[:,0])
-# serie = serie[~np.isnan(serie)]*1.079
-
 Estaciones = Listador(Est_path,final='.csv')
 # idx = np.where(np.array(Estaciones) == '25027220N.csv')[0]
 # for i in idx:
@@ -68,14 +85,19 @@ for i in range(len(Estaciones)):
 
     Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
     Name = Meta.iloc[0].values[0]
-    Est  = Name+'Caudal' if Meta.iloc[-4].values[0]=='CAUDAL' else Name+'Nivel'
+    if Est_path.endswith('CleanNiveles'):
+        Est = Name + 'NR'
+    else:
+        Est  = Name+'Caudal' if Meta.iloc[-4].values[0]=='CAUDAL' else Name+'Nivel'
 
     # code = '25017010'
     # Meta = pd.read_csv(os.path.join(Est_path, code+'.meta'),index_col=0)
     # Est  = Meta.iloc[0].values[0]
 
     serie = Read.EstacionCSV_pd(Estaciones[i], Est, path=Est_path)
-    serie = FindOutlier(serie, clean=True, index=False, lims=False, restrict_inf=0)
+
+    serie = OuliersENSOjust(serie, ENSO, lim_inf=0)
+
     serie = serie.groupby(lambda y : y.year).max()
     serie = serie[~np.isnan(serie.values)].values.ravel()
 
@@ -358,7 +380,7 @@ for i in range(len(Estaciones)):
              ax0.spines[axis].set_linewidth(1.8)
         plt.legend(loc='best', numpoints = 1, fontsize = fontsize-1)
 
-        plt.savefig(os.path.join(Path_out,'Cuantiles_' + Est + 'B.png'), dpi = 400)
+        plt.savefig(os.path.join(Path_out,'Cuantiles_' + Est + '.png'), dpi = 400)
 
 
         ####################   FIGURE

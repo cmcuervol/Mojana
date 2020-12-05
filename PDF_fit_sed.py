@@ -7,6 +7,7 @@ Created on Sun Oct 11 18:00:30 2020
 import os
 import numpy as np
 import pandas as pd
+import datetime as dt
 import scipy.stats as st
 import pylab as plt
 
@@ -30,27 +31,53 @@ Ldist = [Lnorm, Lexp, Lgumbel, LGPA, LGEV, LGLO, LLOG3, LP3]
 LCDF  = [NORMcdf, EXPcdf, GUMcdf, GPAcdf, GEVcdf, GLOcdf, LLOG3cdf, LP3cdf]
 Lq    = [NORMq, EXPq, GUMq, GPAq, GEVq, GLOq, LLOG3q, LP3q]
 
+ONI = ONIdata()
+ONI = ONI['Anomalie'].astype(float)
+ENSO = ONI[np.where((ONI.values<=-0.5)|(ONI.values>=0.5))[0]]
+
+def OuliersENSOjust(Serie, ENSO=ENSO, lim_inf=0):
+    """
+    Remove  ouliers with the function find ouliers and justify the values in ENSO periods
+    INPUTS
+    Serie : Pandas DataFrame or pandas Series with index as datetime
+    ENSO  : Pandas DataFrame with the index of dates of ENSO periods
+    lim_inf : limit at the bottom for the ouliers
+    OUTPUTS
+    S : DataFrame without ouliers outside ENSO periods
+    """
+
+    idx = FindOutlier(Serie, clean=False, index=True, lims=False, restrict_inf=lim_inf)
+    injust = []
+    for ii in idx:
+        month = dt.datetime(Serie.index[ii].year,Serie.index[ii].month, 1)
+        if month not in ENSO.index:
+            injust.append(ii)
+
+    if  len(injust) == 0:
+        S = Serie
+    else:
+        S = Serie.drop(Serie.index[injust])
+    return S
 ################################   INPUT   #####################################
 
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Sedimentos/Ajustes/'))
 Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanSedimentos'))
 
-ONI = ONIdata()
-ONI = ONI['Anomalie'].astype(float)
-ENSO = ONI[np.where((ONI.values<=-0.5)|(ONI.values>=0.5))[0]]
 Estaciones = Listador(Est_path, inicio='Trans',final='.csv')
 
 Tr = np.array([2.33, 5, 10, 25, 50, 100, 200, 500, 1000])
 q = 1. - 1./Tr
 Resumen = pd.DataFrame([], columns=Tr)
 SK_resm = pd.DataFrame([])
-kill
+
 for i in range(len(Estaciones)):
 
     Est  = Estaciones[i].split('_')[1].split('.csv')[0]
     serie = pd.read_csv(os.path.join(Est_path, Estaciones[i]), index_col=0)
     serie.index = pd.DatetimeIndex(serie.index)
-    # serie = FindOutlier(serie, clean=True, index=False, lims=False, restrict_inf=0)
+
+    serie = OuliersENSOjust(serie, ENSO, lim_inf=0)
+
     serie = serie.groupby(lambda y : y.year).max()
     serie = serie[~np.isnan(serie.values)].values.ravel()
 
