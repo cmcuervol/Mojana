@@ -69,6 +69,8 @@ Tr = np.array([2.33, 5, 10, 25, 50, 100, 200, 500, 1000])
 q = 1. - 1./Tr
 Resumen = pd.DataFrame([], columns=Tr)
 SK_resm = pd.DataFrame([])
+Intrval = pd.DataFrame([], columns=['Inferior', 'Superior'])
+Alpha_inverval = 0.95
 
 for i in range(len(Estaciones)):
 
@@ -289,29 +291,34 @@ for i in range(len(Estaciones)):
     ######################   Quantiles by best distribution   ######################
     ################################################################################
 
-    best_LM  = np.where(pvalue_LM==np.nanmax(pvalue_LM))[0][0]
-    best_MEL = np.where(pvalue_LM==np.nanmax(pvalue_LM))[0][0]
-    if best_LM == best_MEL:
-        index = best_LM
-    else:
-        print(f"Choose between index {best_LM} and {best_MEL}")
-
-    # twoparams = 1
-    locMEL, scaleMEL, shapeMEL = paramsMEL[index,:]
-    locLM, scaleLM, shapeLM = paramsLM[index,:]
-    distMEL = getattr(st, dist_names[index])
-    distLM  = Lq[index]
+    # best_LM  = np.where(pvalue_LM==np.nanmax(pvalue_LM))[0][0]
+    # best_MEL = np.where(pvalue_LM==np.nanmax(pvalue_LM))[0][0]
+    # if best_LM == best_MEL:
+    #     index = best_LM
+    # else:
+    #     print(f"Choose between index {best_LM} and {best_MEL}")
+    #
+    # # twoparams = 1
+    # locMEL, scaleMEL, shapeMEL = paramsMEL[index,:]
+    # locLM,  scaleLM,  shapeLM =  paramsLM [index,:]
+    # distMEL = getattr(st, dist_names[index])
+    # distLM  = Lq[index]
 
     try:
         # Quantiles MEL
         quant_MEL = distMEL.ppf(q, loc = locMEL, scale = scaleMEL)
         # Quantiles LM
         quant_LM = distLM(q, locLM, scaleLM)
+        # confidence interval
+        inf, sup  = distMEL.interval(Alpha_inverval, loc = locMEL, scale = scaleMEL)
+
     except:
         # Quantiles MEL
         quant_MEL = distMEL.ppf(q, shapeMEL, loc = locMEL, scale = scaleMEL)
         # Quantiles LM
         quant_LM = distLM(q, locLM, scaleLM, shapeLM)
+        # confidence interval
+        inf, sup  = distMEL.interval(Alpha_inverval, shapeMEL, loc = locMEL, scale = scaleMEL)
 
 
     ####################   FIGURE
@@ -410,6 +417,10 @@ for i in range(len(Estaciones)):
     SK_MEL  = pd.Series(df.ks_MEL,name=Est+'_MEL')
     SK_resm = SK_resm.append(SK_MEL)
 
+    intrval = pd.Series([inf, sup],name=Est, index=['Inferior', 'Superior'])
+    Intrval = Intrval.append(intrval)
+
 
 Resumen.to_csv(os.path.join(Path_out,'ResumenCuantiles_sed.csv'))
 SK_resm.to_csv(os.path.join(Path_out,'ResumenSK_sed.csv'))
+Intrval.to_csv(os.path.join(Path_out,'Intervalos_sed.csv'))

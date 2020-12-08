@@ -60,8 +60,8 @@ def OuliersENSOjust(Serie, ENSO=ENSO, lim_inf=0):
     return S
 ################################   INPUT   #####################################
 
-# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
-Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
+Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
+# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Ajustes'))
 
 # Read.SplitAllIDEAM('NivelReal', Est_path=Est_path,Nivel=True)
@@ -81,6 +81,9 @@ Tr = np.array([2.33, 5, 10, 25, 50, 100, 200, 500, 1000])
 q = 1. - 1./Tr
 Resumen = pd.DataFrame([], columns=Tr)
 SK_resm = pd.DataFrame([])
+Intrval = pd.DataFrame([], columns=['Inferior', 'Superior'])
+Alpha_inverval = 0.95
+
 for i in range(len(Estaciones)):
 
     Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
@@ -312,29 +315,34 @@ for i in range(len(Estaciones)):
         ######################   Quantiles by best distribution   ######################
         ################################################################################
 
-        best_LM  = np.where(pvalue_LM==np.nanmax(pvalue_LM))[0][0]
-        best_MEL = np.where(pvalue_LM==np.nanmax(pvalue_LM))[0][0]
-        if best_LM == best_MEL:
-            index = best_LM
-        else:
-            print(f"Choose between index {best_LM} and {best_MEL}")
-
-        # twoparams = 1
-        locMEL, scaleMEL, shapeMEL = paramsMEL[index,:]
-        locLM, scaleLM, shapeLM = paramsLM[index,:]
-        distMEL = getattr(st, dist_names[index])
-        distLM  = Lq[index]
+        # best_LM  = np.where(pvalue_LM==np.nanmax(pvalue_LM))[0][0]
+        # best_MEL = np.where(pvalue_LM==np.nanmax(pvalue_LM))[0][0]
+        # if best_LM == best_MEL:
+        #     index = best_LM
+        # else:
+        #     print(f"Choose between index {best_LM} and {best_MEL}")
+        #
+        # # twoparams = 1
+        # locMEL, scaleMEL, shapeMEL = paramsMEL[index,:]
+        # locLM, scaleLM, shapeLM = paramsLM[index,:]
+        # distMEL = getattr(st, dist_names[index])
+        # distLM  = Lq[index]
 
         try:
             # Quantiles MEL
             quant_MEL = distMEL.ppf(q, loc = locMEL, scale = scaleMEL)
             # Quantiles LM
             quant_LM = distLM(q, locLM, scaleLM)
+            # confidence interval
+            inf, sup  = distMEL.interval(Alpha_inverval, loc = locMEL, scale = scaleMEL)
+
         except:
             # Quantiles MEL
             quant_MEL = distMEL.ppf(q, shapeMEL, loc = locMEL, scale = scaleMEL)
             # Quantiles LM
             quant_LM = distLM(q, locLM, scaleLM, shapeLM)
+            # confidence interval
+            inf, sup  = distMEL.interval(Alpha_inverval, shapeMEL, loc = locMEL, scale = scaleMEL)
 
 
         ####################   FIGURE
@@ -432,8 +440,19 @@ for i in range(len(Estaciones)):
         SK_resm = SK_resm.append(SK_LM)
         SK_MEL  = pd.Series(df.ks_MEL,name=Est+'_MEL')
         SK_resm = SK_resm.append(SK_MEL)
+
+        intrval = pd.Series([inf, sup],name=Est, index=['Inferior', 'Superior'])
+        Intrval = Intrval.append(intrval)
+
     except:
         continue
 
-Resumen.to_csv(os.path.join(Path_out,'ResumenCuantiles.csv'))
-SK_resm.to_csv(os.path.join(Path_out,'ResumenSK.csv'))
+if Est_path.endswith('CleanNiveles'):
+    sufix = 'NR'
+else:
+    sufix = ''
+
+
+Resumen.to_csv(os.path.join(Path_out,f'ResumenCuantiles_{sufix}.csv'))
+SK_resm.to_csv(os.path.join(Path_out,f'ResumenSK_{sufix}.csv'))
+Intrval.to_csv(os.path.join(Path_out,f'Intervalos_{sufix}.csv'))
