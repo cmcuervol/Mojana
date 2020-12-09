@@ -16,6 +16,8 @@ from Modules.Utils import Listador, FindOutlier
 from Modules.FitStats import QuantilBestFit
 from ENSO import ONIdata
 
+from tqdm import tqdm
+
 ONI = ONIdata()
 ONI = ONI['Anomalie'].astype(float)
 ENSO = ONI[np.where((ONI.values<=-0.5)|(ONI.values>=0.5))[0]]
@@ -59,8 +61,8 @@ if Est_path.endswith('CleanSedimentos'):
     Estaciones = Listador(Est_path, inicio='Trans',final='.csv')
 
 
-n_boots = int(1E4)
-split_fact = 0.3
+n_boots = int(1E2)
+split_fact = 0.8
 Tr = np.array([2.33, 5, 10, 25, 50, 100, 200, 500, 1000])
 Quant = pd.DataFrame([], columns=Tr)
 Uncer = pd.DataFrame([], columns=Tr)
@@ -71,6 +73,7 @@ u_LM = np.empty((len(Estaciones), len(Tr)), dtype=float)
 u_MEL= np.empty((len(Estaciones), len(Tr)), dtype=float)
 dist = np.empty(len(Estaciones), dtype='<U15')
 
+pbar = tqdm(total=len(Estaciones), desc='Fittin station: ')
 for i in range(len(Estaciones)):
     if Est_path.endswith('CleanSedimentos') == False:
         Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
@@ -99,24 +102,28 @@ for i in range(len(Estaciones)):
     except:
         Q_LM [i,:] *= np.nan
         Q_MEL[i,:] *= np.nan
-        dis[i] = 'fit_failure'
+        dist[i] = 'fit_failure'
 
     unc_LM  = np.empty((n_boots,len(Tr)),dtype=float)
     unc_MEL = np.empty((n_boots,len(Tr)),dtype=float)
+
+    barra = tqdm(total=n_boots, desc=f'bootstraping {i}/{len(Estaciones)}: ')
     for b in range(n_boots):
         if split_fact*len(serie)<4:
             size = 4
             if len(serie)>10:
                 size = int(0.5*len(serie))
         else:
-            sixe = int(split_fact*len(serie))
+            size = int(split_fact*len(serie))
 
         sample = np.random.choice(serie, size=size)
         try:
-            unc_LM[i,:], unc_MEL[i,:], _ = QuantilBestFit(sample, Tr)
+            unc_LM[b,:], unc_MEL[b,:], _ = QuantilBestFit(sample, Tr)
         except:
-            unc_LM [i,:] *= np.nan
-            unc_MEL[i,:] *= np.nan
+            unc_LM [b,:] *= np.nan
+            unc_MEL[b,:] *= np.nan
+        barra.update(1)
+    barra.close()
 
     u_LM [i,:] = np.nanstd(unc_LM,  ddof=1, axis=0)
     u_MEL[i,:] = np.nanstd(unc_MEL, ddof=1, axis=0)
@@ -131,6 +138,9 @@ for i in range(len(Estaciones)):
     uncer = pd.Series(u_MEL[i],name=Est+'_MEL', index=Tr)
     Uncer = Uncer.append(uncer)
 
+    pbar.update(1)
+
+pbar.close()
 
 
 
