@@ -60,7 +60,7 @@ if Est_path.endswith('CleanSedimentos'):
 
 
 n_boots = int(1E4)
-
+split_fact = 0.3
 Tr = np.array([2.33, 5, 10, 25, 50, 100, 200, 500, 1000])
 Quant = pd.DataFrame([], columns=Tr)
 Uncer = pd.DataFrame([], columns=Tr)
@@ -94,14 +94,29 @@ for i in range(len(Estaciones)):
     serie = serie.groupby(lambda y : y.year).max()
     serie = serie[~np.isnan(serie.values)].values.ravel()
 
-
-    Q_LM[i,:], Q_MEL[i,:], dist[i] = QuantilBestFit(serie, Tr)
+    try:
+        Q_LM[i,:], Q_MEL[i,:], dist[i] = QuantilBestFit(serie, Tr)
+    except:
+        Q_LM [i,:] *= np.nan
+        Q_MEL[i,:] *= np.nan
+        dis[i] = 'fit_failure'
 
     unc_LM  = np.empty((n_boots,len(Tr)),dtype=float)
     unc_MEL = np.empty((n_boots,len(Tr)),dtype=float)
     for b in range(n_boots):
-        sample = np.random.choice(serie, size=int(0.3*len(serie)))
-        unc_LM[i,:], unc_MEL[i,:], _ = QuantilBestFit(sample, Tr)
+        if split_fact*len(serie)<4:
+            size = 4
+            if len(serie)>10:
+                size = int(0.5*len(serie))
+        else:
+            sixe = int(split_fact*len(serie))
+
+        sample = np.random.choice(serie, size=size)
+        try:
+            unc_LM[i,:], unc_MEL[i,:], _ = QuantilBestFit(sample, Tr)
+        except:
+            unc_LM [i,:] *= np.nan
+            unc_MEL[i,:] *= np.nan
 
     u_LM [i,:] = np.nanstd(unc_LM,  ddof=1, axis=0)
     u_MEL[i,:] = np.nanstd(unc_MEL, ddof=1, axis=0)
