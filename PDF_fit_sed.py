@@ -66,11 +66,13 @@ Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanSedimen
 Estaciones = Listador(Est_path, inicio='Trans',final='.csv')
 
 Tr = np.array([2.33, 5, 10, 25, 50, 100, 200, 500, 1000])
+KT  = ((6**0.5)/np.pi)*(0.5772+ np.log(np.log(Tr/(Tr-1))))
+confidence = 0.95
 q = 1. - 1./Tr
 Resumen = pd.DataFrame([], columns=Tr)
 SK_resm = pd.DataFrame([])
-Intrval = pd.DataFrame([], columns=['Inferior', 'Superior'])
-Alpha_inverval = 0.95
+Bandas  = pd.DataFrame([], columns=np.append(Tr, Tr))
+
 
 for i in range(len(Estaciones)):
 
@@ -291,18 +293,19 @@ for i in range(len(Estaciones)):
     ######################   Quantiles by best distribution   ######################
     ################################################################################
 
-    # best_LM  = np.where(pvalue_LM==np.nanmax(pvalue_LM))[0][0]
-    # best_MEL = np.where(pvalue_LM==np.nanmax(pvalue_LM))[0][0]
-    # if best_LM == best_MEL:
-    #     index = best_LM
-    # else:
-    #     print(f"Choose between index {best_LM} and {best_MEL}")
-    #
-    # # twoparams = 1
-    # locMEL, scaleMEL, shapeMEL = paramsMEL[index,:]
-    # locLM,  scaleLM,  shapeLM =  paramsLM [index,:]
-    # distMEL = getattr(st, dist_names[index])
-    # distLM  = Lq[index]
+    best_LM  = np.where(pvalue_LM==np.nanmax(pvalue_LM))[0][0]
+    best_MEL = np.where(pvalue_LM==np.nanmax(pvalue_LM))[0][0]
+    if best_LM == best_MEL:
+        index = best_LM
+    else:
+        print(f"Choose between index {best_LM} and {best_MEL}")
+
+    # twoparams = 1
+    locMEL, scaleMEL, shapeMEL = paramsMEL[index,:]
+    locLM,  scaleLM,  shapeLM =  paramsLM [index,:]
+    distMEL = getattr(st, dist_names[index])
+    distLM  = Lq[index]
+
 
     try:
         # Quantiles MEL
@@ -310,7 +313,7 @@ for i in range(len(Estaciones)):
         # Quantiles LM
         quant_LM = distLM(q, locLM, scaleLM)
         # confidence interval
-        inf, sup  = distMEL.interval(Alpha_inverval, loc = locMEL, scale = scaleMEL)
+        # inf, sup  = distMEL.interval(confidence, loc = locMEL, scale = scaleMEL)
 
     except:
         # Quantiles MEL
@@ -318,7 +321,18 @@ for i in range(len(Estaciones)):
         # Quantiles LM
         quant_LM = distLM(q, locLM, scaleLM, shapeLM)
         # confidence interval
-        inf, sup  = distMEL.interval(Alpha_inverval, shapeMEL, loc = locMEL, scale = scaleMEL)
+        # inf, sup  = distMEL.interval(confidence, shapeMEL, loc = locMEL, scale = scaleMEL)
+
+    # confidence interval
+    sigma = np.std(serie,  ddof=1)
+    # se    = st.sem(serie)
+    se = 1
+    h = KT * sigma * se * st.t.ppf(1 - confidence/2., len(serie)-1)
+
+    inf_MEL = quant_MEL - abs(h)
+    sup_MEL = quant_MEL + abs(h)
+    inf_LM  = quant_LM  - abs(h)
+    sup_LM  = quant_LM  + abs(h)
 
 
     ####################   FIGURE
@@ -340,14 +354,21 @@ for i in range(len(Estaciones)):
     ax0 = plt.subplot(gs[0])
     plt.plot(Tr, quant_MEL, 'o-', mfc = 'r', mec = 'k', mew = 1.2, color = 'r',
              lw = 2.5, label = u'Máxima verosimilitud', clip_on = False, zorder = 4)
-    #plt.plot(Tr, quant_MEL+300., 'o-', mfc = 'r', mec = 'k', mew = 1.2, color = 'r',
-    #         lw = 2.5, label = u'Máxima verosimilitud + 2.33 Pte Comuna', clip_on = False, zorder = 4)
+    plt.plot(Tr, inf_MEL, '--', mfc = 'r', mec = 'k', mew = 1.2, color = 'r',
+            lw = 2.5, label = u'Máxima verosimilitud bandas de confianza', clip_on = False, zorder = 4)
+
     plt.plot(Tr, quant_LM, 's-', mfc = 'b', mec = 'k', mew = 1.2, color = 'b',
              lw = 1.5, label = 'L-momentos', clip_on = False, zorder = 4)
-    #plt.plot(Tr, quant_LM+300., 's-', mfc = 'b', mec = 'k', mew = 1.2, color = 'b',
-    #         lw = 1.5, label = 'L-momentos + 2.33 Pte Comuna', clip_on = False, zorder = 4)
-    # plt.plot(Trpadec, Qpadec, 'v-', mfc = 'g', mec = 'k', mew = 1.2, color = 'g',
-    #          lw = 1.5, label = 'PADEC (2016)', clip_on = False, zorder = 5)
+    plt.plot(Tr, inf_LM, '--', mfc = 'b', mec = 'k', mew = 1.2, color = 'b',
+            lw = 1.5, label = 'L-momentos bandas de confianza', clip_on = False, zorder = 4)
+
+    plt.legend(loc='best', numpoints = 1, fontsize = fontsize-1)
+
+    plt.plot(Tr, sup_MEL, '--', mfc = 'r', mec = 'k', mew = 1.2, color = 'r',
+            lw = 2.5, label = u'Máxima verosimilitud bandas de confianza', clip_on = False, zorder = 4)
+    plt.plot(Tr, sup_LM, '--', mfc = 'b', mec = 'k', mew = 1.2, color = 'b',
+            lw = 1.5, label = 'L-momentos bandas de confianza', clip_on = False, zorder = 4)
+
     #plt.ylim([0, 3500])
     plt.xlabel(u'Periodo de retorno [años]', fontsize = fontsize, labelpad = 0)
     plt.ylabel(u'MATERIALES EN SUSPENSION  [K.TON/DIA]',
@@ -362,7 +383,6 @@ for i in range(len(Estaciones)):
     #plt.setp(ax0.get_xticklabels(), visible=False)
     for axis in ['top','bottom','left','right']:
          ax0.spines[axis].set_linewidth(1.8)
-    plt.legend(loc='best', numpoints = 1, fontsize = fontsize-1)
 
     plt.savefig(os.path.join(Path_out,'Cuantiles_' + Est + '.png'), dpi = 400)
 
@@ -387,6 +407,11 @@ for i in range(len(Estaciones)):
 
     plt.plot(Tr, quant_LM, 's-', mfc = 'b', mec = 'k', mew = 1.2, color = 'b',
              lw = 1.5, label = 'L-momentos', clip_on = False, zorder = 4)
+    plt.plot(Tr, inf_LM, '--', mfc = 'b', mec = 'k', mew = 1.2, color = 'b',
+            lw = 1.5, label = 'L-momentos bandas de confianza', clip_on = False, zorder = 4)
+    plt.plot(Tr, sup_LM, '--', mfc = 'b', mec = 'k', mew = 1.2, color = 'b',
+            lw = 1.5, label = 'L-momentos bandas de confianza', clip_on = False, zorder = 4)
+
     plt.xlabel(u'Periodo de retorno [años]', fontsize = fontsize, labelpad = 0)
     plt.ylabel(u'MATERIALES EN SUSPENSION  [K.TON/DIA]',
                fontsize = fontsize, labelpad = 0)
@@ -417,10 +442,13 @@ for i in range(len(Estaciones)):
     SK_MEL  = pd.Series(df.ks_MEL,name=Est+'_MEL')
     SK_resm = SK_resm.append(SK_MEL)
 
-    intrval = pd.Series([inf, sup],name=Est, index=['Inferior', 'Superior'])
-    Intrval = Intrval.append(intrval)
+
+    bnd_MEL = pd.Series(np.append(inf_MEL, sup_MEL),name=Est+'_MEL', index= np.append(Tr, Tr))
+    Bandas  = Bandas.append(bnd_MEL)
+    bnd_LM  = pd.Series(np.append(inf_LM, sup_LM),name=Est+'_LM', index= np.append(Tr, Tr))
+    Bandas  = Bandas.append(bnd_LM)
 
 
 Resumen.to_csv(os.path.join(Path_out,'ResumenCuantiles_sed.csv'))
 SK_resm.to_csv(os.path.join(Path_out,'ResumenSK_sed.csv'))
-Intrval.to_csv(os.path.join(Path_out,'Intervalos_sed.csv'))
+Bandas.to_csv(os.path.join(Path_out,'Bandas_sed.csv'))
