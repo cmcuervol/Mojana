@@ -69,21 +69,39 @@ def SplitIDEAMfile(filename, sept=',', Est_path=Est_path):
     for Est_ID in np.unique(Dat.CodigoEstacion.values) :
         idx = np.where(Dat.CodigoEstacion.values==Est_ID)[0]
         meta = {'Parametro': 'Valor'}
-        meta['NombreEstacion'  ] = np.unique(Dat.NombreEstacion  .iloc[idx])[0].replace(',','-')
-        meta['Latitud'         ] = np.unique(Dat.Latitud         .iloc[idx])[0]
-        meta['Longitud'        ] = np.unique(Dat.Longitud        .iloc[idx])[0]
-        meta['Altitud'         ] = np.unique(Dat.Altitud         .iloc[idx])[0]
-        meta['Categoria'       ] = np.unique(Dat.Categoria       .iloc[idx])[0].replace(',','-')
-        meta['Entidad'         ] = np.unique(Dat.Entidad         .iloc[idx])[0].replace(',','-')
-        meta['AreaOperativa'   ] = np.unique(Dat.AreaOperativa   .iloc[idx])[0].replace(',','-')
-        meta['Departamento'    ] = np.unique(Dat.Departamento    .iloc[idx])[0].replace(',','-')
-        meta['Municipio'       ] = np.unique(Dat.Municipio       .iloc[idx])[0].replace(',','-')
-        meta['FechaInstalacion'] = np.unique(Dat.FechaInstalacion.iloc[idx])[0]
-        meta['FechaSuspension' ] = np.unique(Dat.FechaSuspension .iloc[idx])[0]
-        meta['IdParametro'     ] = np.unique(Dat.IdParametro     .iloc[idx])[0].replace(',','-')
-        meta['Etiqueta'        ] = np.unique(Dat.Etiqueta        .iloc[idx])[0].replace(',','-')
-        meta['DescripcionSerie'] = np.unique(Dat.DescripcionSerie.iloc[idx])[0].replace(',','-')
-        meta['Frecuencia'      ] = np.unique(Dat.Frecuencia      .iloc[idx])[0].replace(',','-')
+        try:
+            meta['NombreEstacion'  ] = np.unique(Dat.NombreEstacion  .iloc[idx])[0].replace(',','-')
+            meta['Latitud'         ] = np.unique(Dat.Latitud         .iloc[idx])[0]
+            meta['Longitud'        ] = np.unique(Dat.Longitud        .iloc[idx])[0]
+            meta['Altitud'         ] = np.unique(Dat.Altitud         .iloc[idx])[0]
+            meta['Categoria'       ] = np.unique(Dat.Categoria       .iloc[idx])[0].replace(',','-')
+            meta['Entidad'         ] = np.unique(Dat.Entidad         .iloc[idx])[0].replace(',','-')
+            meta['AreaOperativa'   ] = np.unique(Dat.AreaOperativa   .iloc[idx])[0].replace(',','-')
+            meta['Departamento'    ] = np.unique(Dat.Departamento    .iloc[idx])[0].replace(',','-')
+            meta['Municipio'       ] = np.unique(Dat.Municipio       .iloc[idx])[0].replace(',','-')
+            meta['FechaInstalacion'] = np.unique(Dat.FechaInstalacion.iloc[idx])[0]
+            meta['FechaSuspension' ] = np.unique(Dat.FechaSuspension .iloc[idx])[0]
+            meta['IdParametro'     ] = np.unique(Dat.IdParametro     .iloc[idx])[0].replace(',','-')
+            meta['Etiqueta'        ] = np.unique(Dat.Etiqueta        .iloc[idx])[0].replace(',','-')
+            meta['DescripcionSerie'] = np.unique(Dat.DescripcionSerie.iloc[idx])[0].replace(',','-')
+            meta['Frecuencia'      ] = np.unique(Dat.Frecuencia      .iloc[idx])[0].replace(',','-')
+        except:
+            meta['NombreEstacion'  ] = np.unique(Dat.NombreEstacion  .iloc[idx])[0]
+            meta['Latitud'         ] = np.unique(Dat.Latitud         .iloc[idx])[0]
+            meta['Longitud'        ] = np.unique(Dat.Longitud        .iloc[idx])[0]
+            meta['Altitud'         ] = np.unique(Dat.Altitud         .iloc[idx])[0]
+            meta['Categoria'       ] = np.unique(Dat.Categoria       .iloc[idx])[0]
+            meta['Entidad'         ] = np.unique(Dat.Entidad         .iloc[idx])[0]
+            meta['AreaOperativa'   ] = np.unique(Dat.AreaOperativa   .iloc[idx])[0]
+            meta['Departamento'    ] = np.unique(Dat.Departamento    .iloc[idx])[0]
+            meta['Municipio'       ] = np.unique(Dat.Municipio       .iloc[idx])[0]
+            meta['FechaInstalacion'] = np.unique(Dat.FechaInstalacion.iloc[idx])[0]
+            meta['FechaSuspension' ] = np.unique(Dat.FechaSuspension .iloc[idx])[0]
+            meta['IdParametro'     ] = np.unique(Dat.IdParametro     .iloc[idx])[0]
+            meta['Etiqueta'        ] = np.unique(Dat.Etiqueta        .iloc[idx])[0]
+            meta['DescripcionSerie'] = np.unique(Dat.DescripcionSerie.iloc[idx])[0]
+            meta['Frecuencia'      ] = np.unique(Dat.Frecuencia      .iloc[idx])[0]
+
 
         PPT = pd.DataFrame(Dat[['Valor', 'Grado','Calificador', 'NivelAprobacion']].iloc[idx].values,
                            index = pd.DatetimeIndex(Dat.Fecha.iloc[idx]),
