@@ -12,7 +12,7 @@ import scipy.stats as st
 import pylab as plt
 
 from Modules import Read
-from Modules.Utils import Listador, FindOutlier
+from Modules.Utils import Listador, FindOutlier, FindOutlierMAD
 from ENSO import ONIdata
 ############################   L-moments functions   ###########################
 
@@ -35,18 +35,25 @@ ONI = ONIdata()
 ONI = ONI['Anomalie'].astype(float)
 ENSO = ONI[np.where((ONI.values<=-0.5)|(ONI.values>=0.5))[0]]
 
-def OuliersENSOjust(Serie, ENSO=ENSO, lim_inf=0):
+def OuliersENSOjust(Serie, ENSO=ENSO, method='IQR', lim_inf=0, write=True, name=None):
     """
-    Remove  ouliers with the function find ouliers and justify the values in ENSO periods
+    Remove  outliers with the function find outliers and justify the values in ENSO periods
     INPUTS
     Serie : Pandas DataFrame or pandas Series with index as datetime
     ENSO  : Pandas DataFrame with the index of dates of ENSO periods
-    lim_inf : limit at the bottom for the ouliers
+    method: str to indicate the mehtod to find outliers, ['IQR','MAD']
+    lim_inf : limit at the bottom for the outliers
+    write : boolean to write the outliers
+    Name  : string of estation name to save the outliers
     OUTPUTS
-    S : DataFrame without ouliers outside ENSO periods
+    S : DataFrame without outliers outside ENSO periods
     """
-
-    idx = FindOutlier(Serie, clean=False, index=True, lims=False, restrict_inf=lim_inf)
+    if method == 'IQR':
+        idx = FindOutlier(Serie, clean=False, index=True, lims=False, restrict_inf=lim_inf)
+    elif method == 'MAD':
+        idx = FindOutlierMAD(Serie.dropna().values,clean=False, index=True)
+    else:
+        print(f'{method} is not a valid method, please check the spelling')
     injust = []
     for ii in idx:
         month = dt.datetime(Serie.index[ii].year,Serie.index[ii].month, 1)
@@ -57,6 +64,9 @@ def OuliersENSOjust(Serie, ENSO=ENSO, lim_inf=0):
         S = Serie
     else:
         S = Serie.drop(Serie.index[injust])
+        if write == True:
+            outliers = Serie.iloc[injust]
+            outliers.to_csv(os.path.join(Path_out, f'Outliers_{name}_{method}.csv'))
     return S
 ################################   INPUT   #####################################
 
@@ -80,7 +90,8 @@ for i in range(len(Estaciones)):
     serie = pd.read_csv(os.path.join(Est_path, Estaciones[i]), index_col=0)
     serie.index = pd.DatetimeIndex(serie.index)
 
-    serie = OuliersENSOjust(serie, ENSO, lim_inf=0)
+    serie = OuliersENSOjust(serie, ENSO, method='IQR', lim_inf=0,  write=True, name=Est)
+    SERIE = OuliersENSOjust(serie, ENSO, method='MAD', lim_inf=0,  write=True, name=Est)
 
     serie = serie.groupby(lambda y : y.year).max()
     serie = serie[~np.isnan(serie.values)].values.ravel()

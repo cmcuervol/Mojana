@@ -374,13 +374,13 @@ def CleanArray(original, value=0, condition='==', mask_value='delete'):
 
 def FindOutlier(serie,index=True,clean=True,lims=True, xIQR=1.5, restrict_inf=None, restrict_sup=None):
     """
-    Finds ouliers data in a series
+    Finds outliers data in a series
     INPUTS
     serie : list or or 1d array
     index : boolean to return the indexes with outliers
     celan : boolean to return the serie without outliers
     lims  : boolean to return the limits
-    xIQR  : Times of IQR are defined the limit to ouliers
+    xIQR  : Times of IQR are defined the limit to outliers
     OUTPUTS
     ser : serie whitout ouliers if clean parameter are True
     idx : indexes of the oiliers if index parameter are True
@@ -420,6 +420,53 @@ def FindOutlier(serie,index=True,clean=True,lims=True, xIQR=1.5, restrict_inf=No
             return ser
     elif lims == True:
         return lim_inf, lim_sup
+    else:
+        return "Ashole, a least one of clean or index must be True"
+
+
+def FindOutlierMAD(points, thresh=3.5,index=True,clean=True):
+    """
+    Returns a boolean array with True if points are outliers and False
+    otherwise.
+
+    Parameters:
+    -----------
+        points : An numobservations by numdimensions array of observations
+        thresh : The modified z-score to use as a threshold. Observations with
+            a modified z-score (based on the median absolute deviation) greater
+            than this value will be classified as outliers.
+
+    Returns:
+    --------
+        mask : A numobservations-length boolean array.
+
+    References:
+    ----------
+        Boris Iglewicz and David Hoaglin (1993), "Volume 16: How to Detect and
+        Handle Outliers", The ASQC Basic References in Quality Control:
+        Statistical Techniques, Edward F. Mykytka, Ph.D., Editor.
+    """
+    if len(points.shape) == 1:
+        points = points[:,None]
+    median = np.median(points, axis=0)
+    diff = np.sum((points - median)**2, axis=-1)
+    diff = np.sqrt(diff)
+    med_abs_deviation = np.median(diff)
+
+    modified_z_score = 0.6745 * diff / med_abs_deviation
+
+    out = modified_z_score > thresh
+
+    if index == True:
+        idx = np.where(out==True)[0]
+        if clean == True:
+            ser = points[~out]
+            return ser, idx
+        else:
+            return idx
+    elif clean == True:
+        ser = points[~out]
+        return ser
     else:
         return "Ashole, a least one of clean or index must be True"
 
