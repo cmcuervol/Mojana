@@ -12,7 +12,7 @@ import scipy.stats as st
 import pylab as plt
 
 from Modules import Read
-from Modules.Utils import Listador, FindOutlier
+from Modules.Utils import Listador, FindOutlier, FindOutlierMAD
 from ENSO import ONIdata
 ############################   L-moments functions   ###########################
 
@@ -35,18 +35,25 @@ ONI = ONIdata()
 ONI = ONI['Anomalie'].astype(float)
 ENSO = ONI[np.where((ONI.values<=-0.5)|(ONI.values>=0.5))[0]]
 
-def OuliersENSOjust(Serie, ENSO=ENSO, lim_inf=0):
+def OuliersENSOjust(Serie, ENSO=ENSO, method='IQR', lim_inf=0, write=True, name=None):
     """
-    Remove  ouliers with the function find ouliers and justify the values in ENSO periods
+    Remove  outliers with the function find outliers and justify the values in ENSO periods
     INPUTS
     Serie : Pandas DataFrame or pandas Series with index as datetime
     ENSO  : Pandas DataFrame with the index of dates of ENSO periods
-    lim_inf : limit at the bottom for the ouliers
+    method: str to indicate the mehtod to find outliers, ['IQR','MAD']
+    lim_inf : limit at the bottom for the outliers
+    write : boolean to write the outliers
+    Name  : string of estation name to save the outliers
     OUTPUTS
-    S : DataFrame without ouliers outside ENSO periods
+    S : DataFrame without outliers outside ENSO periods
     """
-
-    idx = FindOutlier(Serie, clean=False, index=True, lims=False, restrict_inf=lim_inf)
+    if method == 'IQR':
+        idx = FindOutlier(Serie, clean=False, index=True, lims=False, restrict_inf=lim_inf)
+    elif method == 'MAD':
+        idx = FindOutlierMAD(Serie.dropna().values,clean=False, index=True)
+    else:
+        print(f'{method} is not a valid method, please check the spelling')
     injust = []
     for ii in idx:
         month = dt.datetime(Serie.index[ii].year,Serie.index[ii].month, 1)
@@ -57,24 +64,25 @@ def OuliersENSOjust(Serie, ENSO=ENSO, lim_inf=0):
         S = Serie
     else:
         S = Serie.drop(Serie.index[injust])
+        if write == True:
+            outliers = Serie.iloc[injust]
+            outliers.to_csv(os.path.join(Path_out, f'Outliers_{name}_{method}.csv'))
     return S
 ################################   INPUT   #####################################
 
 Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
 # Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
+# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanSedimentos'))
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Ajustes'))
 
 # Read.SplitAllIDEAM('NivelReal', Est_path=Est_path,Nivel=True)
-def MaxAnual(Esta, Path_series):
-    """
-    Read estation to extract the anual max value
-    """
-    Dat = Read.EstacionCSV_np(Esta, Esta.split('.csv')[0],Path_series)
-    Max = Dat.groupby(lambda y : y.year).max()
-
-    return Max[~np.isnan(Max.values)].values.ravel()
 
 Estaciones = Listador(Est_path,final='.csv')
+
+if Est_path.endswith('CleanSedimentos'):
+    Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Sedimentos/Ajustes/'))
+    Estaciones = Listador(Est_path, inicio='Trans',final='.csv')
+
 # idx = np.where(np.array(Estaciones) == '25027220N.csv')[0]
 # for i in idx:
 Tr = np.array([2.33, 5, 10, 25, 50, 100, 200, 500, 1000])
@@ -88,28 +96,28 @@ Bandas  = pd.DataFrame([], columns=np.append(Tr, Tr))
 # Alpha_inverval = 0.95
 
 for i in range(len(Estaciones)):
+    if Est_path.endswith('CleanSedimentos') == False:
+        Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
+        Name = Meta.iloc[0].values[0]
 
-    Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
-    Name = Meta.iloc[0].values[0]
-    if Est_path.endswith('CleanNiveles'):
-        Est = Name + 'NR'
+        if Est_path.endswith('CleanNiveles'):
+            Est = Name + 'NR'
+        else:
+            Est  = Name+'Caudal' if Meta.iloc[-4].values[0]=='CAUDAL' else Name+'Nivel'
+
+        serie = Read.EstacionCSV_pd(Estaciones[i], Est, path=Est_path)
+
     else:
-        Est  = Name+'Caudal' if Meta.iloc[-4].values[0]=='CAUDAL' else Name+'Nivel'
+        Est  = Estaciones[i].split('_')[1].split('.csv')[0]
+        serie = pd.read_csv(os.path.join(Est_path, Estaciones[i]), index_col=0)
+        serie.index = pd.DatetimeIndex(serie.index)
 
-    # code = '25017010'
-    # Meta = pd.read_csv(os.path.join(Est_path, code+'.meta'),index_col=0)
-    # Est  = Meta.iloc[0].values[0]
-
-    serie = Read.EstacionCSV_pd(Estaciones[i], Est, path=Est_path)
-
-    serie = OuliersENSOjust(serie, ENSO, lim_inf=0)
+    serie = OuliersENSOjust(serie, ENSO, method='IQR', lim_inf=0,  write=True, name=Est)
+    SERIE = OuliersENSOjust(serie, ENSO, method='MAD', lim_inf=0,  write=True, name=Est)
 
     serie = serie.groupby(lambda y : y.year).max()
     serie = serie[~np.isnan(serie.values)].values.ravel()
 
-    # Est = 'MONTELIBANO - AUT [25017010]'
-    #
-    # serie = MaxAnual(Est+'.csv', Path_dat)
     try:
         lmom, lmomA   = Lmom(serie)
         lmom1, t3, t4 = Lmom1(serie)
@@ -478,9 +486,10 @@ for i in range(len(Estaciones)):
 
 if Est_path.endswith('CleanNiveles'):
     sufix = 'NR'
+elif Est_path.endswith('CleanSedimentos'):
+    sufix = 'Sed'
 else:
     sufix = ''
-
 
 Resumen.to_csv(os.path.join(Path_out,f'ResumenCuantiles_{sufix}.csv'))
 SK_resm.to_csv(os.path.join(Path_out,f'ResumenSK_{sufix}.csv'))
