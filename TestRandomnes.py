@@ -10,8 +10,62 @@ from scipy import stats
 import pymannkendall as mk
 
 from Modules import Read
-from Modules.Utils import Listador, FindOutlier, Cycles
-from Modules.Graphs import GraphSerieOutliers
+from Modules.Utils import Listador, FindOutlier, FindOutlierMAD, Cycles
+from Modules.Graphs import GraphSerieOutliers, GraphSerieOutliersMAD
+from ENSO import ONIdata
+
+
+ONI = ONIdata()
+ONI = ONI['Anomalie'].astype(float)
+ENSO = ONI[np.where((ONI.values<=-0.5)|(ONI.values>=0.5))[0]]
+
+def OuliersENSOjust(Serie, ENSO=ENSO, method='IQR', lim_inf=0,
+                    write=True, name=None,
+                    graph=True, label='', title='', pdf=False, png=True):
+    """
+    Remove  outliers with the function find outliers and justify the values in ENSO periods
+    INPUTS
+    Serie : Pandas DataFrame or pandas Series with index as datetime
+    ENSO  : Pandas DataFrame with the index of dates of ENSO periods
+    method: str to indicate the mehtod to find outliers, ['IQR','MAD']
+    lim_inf : limit at the bottom for the outliers
+    write : boolean to write the outliers
+    Name  : string of estation name to save the outliers
+    label : string of the label
+    title : Figure title
+    pdf   : Boolean to save figure in pdf format
+    png   : Boolean to save figure in png format
+    OUTPUTS
+    S : DataFrame without outliers outside ENSO periods
+    """
+    if method == 'IQR':
+        idx = FindOutlier(Serie, clean=False, index=True, lims=False, restrict_inf=lim_inf)
+    elif method == 'MAD':
+        idx = FindOutlierMAD(Serie.dropna().values,clean=False, index=True)
+    else:
+        print(f'{method} is not a valid method, please check the spelling')
+    injust = []
+    for ii in idx:
+        month = dt.datetime(Serie.index[ii].year,Serie.index[ii].month, 1)
+        if month not in ENSO.index:
+            injust.append(ii)
+
+    if  len(injust) == 0:
+        S = Serie
+    else:
+        S = Serie.drop(Serie.index[injust])
+        if write == True:
+            outliers = Serie.iloc[injust]
+            outliers.to_csv(os.path.join(Path_out, f'Outliers_{name}_{method}.csv'))
+        if graph == True:
+            outliers = Serie.iloc[injust]
+            GraphSerieOutliersMAD(Serie, outliers,
+                                  name=f'Outliers_{name}_{method}',
+                                  label=label,title=title,pdf=pdf, png=png,
+                                  PathFigs=Path_out)
+
+    return S
+
 
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Tests'))
 
@@ -199,10 +253,15 @@ for i in range(len(Estaciones)):
 
     Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
     Name = Meta.iloc[0].values[0]
+    Esta  = Estaciones[i].split('.csv')[0]
+    if Est_path.endswith('CleanNiveles'):
+        Name += 'NR_'
+        Esta  += 'NR'
 
     Dat = Read.EstacionCSV_pd(Estaciones[i], Name, path=Est_path)
+    Dat  = Dat.dropna()
     # dat =  Dat.values.ravel()
-    yearly  = Dat.groupby(lambda y: y.year).max().values.ravel()
+    # yearly  = Dat.groupby(lambda y: y.year).max().values.ravel()
     mensual = Dat.groupby(lambda m: (m.year,m.month)).max()
     out_inf, out_sup = FindOutlier(mensual,clean=False,index=False,lims=True, restrict_inf=0)
     # Path_SaveFigure  = os.path.join(Path_out,Meta.iloc[-4].values[0])
@@ -212,6 +271,16 @@ for i in range(len(Estaciones)):
                        png=True, pdf=False,
                        name=Estaciones[i].split('.csv')[0],
                        PathFigs=os.path.join(Path_out,Meta.iloc[-4].values[0]))
+    Serie = OuliersENSOjust(Dat.sort_index(),method='IQR', ENSO=ENSO,
+                            write=True, name=Esta,
+                            graph=True, label=Meta.iloc[-2].values[0], title=Name,
+                            pdf=False, png=True)
+    Serie = OuliersENSOjust(Dat.sort_index(),method='MAD', ENSO=ENSO,
+                            write=True, name=Esta,
+                            graph=True, label=Meta.iloc[-2].values[0], title=Name,
+                            pdf=False, png=True)
+
+    yearly  = Serie.groupby(lambda y: y.year).max().values.ravel()
     if len(yearly)>3:
         tst = {'Rachas'     :RunsTest(yearly),
                'PuntoCambio':ChangePointTest(yearly),
@@ -226,6 +295,9 @@ for i in range(len(Estaciones)):
         Test = Test.append(Est)
         Outl = Outl.append(Out)
 
-
-Test.to_csv(os.path.join(Path_out,'Test.csv'),     sep=',')
-Outl.to_csv(os.path.join(Path_out,'Outliers.csv'), sep=',')
+if Est_path.endswith('CleanNiveles'):
+    sufix = 'NR'
+else:
+    sufix = ''
+Test.to_csv(os.path.join(Path_out,f'Test_{sufix}.csv'),     sep=',')
+Outl.to_csv(os.path.join(Path_out,f'Outliers_{sufix}.csv'), sep=',')

@@ -702,6 +702,49 @@ def GraphSerieOutliers(Serie, lim_inf, lim_sup, label='', title='', name='Outlie
     else:
         print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
 
+
+def GraphSerieOutliersMAD(Serie, Outliers, label='', title='', name='Outliers1', pdf=True, png=False, PathFigs=Path,):
+    """
+    Grahp serie with ouliers
+    INPUTS
+    Serie    : DataFrame array with data
+    lim_inf  : float of bottom threshold to consider outliers
+    lim_sup  : float of upper threshold to consider outliers
+    label    : string of the label
+    title    : Figure title
+    name     : Name to save figure
+    pdf      : Boolean to save figure in pdf format
+    png      : Boolean to save figure in png format
+    PathFigs : Aboslute route to directory where figure will be save
+    """
+    plt.close('all')
+    figure =plt.figure(figsize=(7.9,4.8))
+    ax = figure.add_subplot(1,1,1)
+
+    ax.plot(Serie,color=azul,lw=2, label='Serie')
+    ax.plot(Outliers,marker='*',color=rojo, linestyle='None', label='Outliers')
+    ax.set_ylabel(label)
+    # ticks = ax.get_xticks()
+    # labels = [Serie.index[int(i)].strftime('%H:%M') for i in ticks[:-1]]
+    start, end = ax.get_xlim()
+    ax.xaxis.set_ticks(np.linspace(start, end, 8))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
+    ax.set_xlabel(label)
+    ax.legend(loc=0)
+    ax.set_title(title)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
 def DurationCurve(T_super, Values, label='', title='', name='DurationCurve', pdf=True, png=False, PathFigs=Path,):
     """
     Grahp serie with ouliers
