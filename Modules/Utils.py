@@ -498,6 +498,7 @@ def Cycles(serie, type='annual-diurnal', percentiles='mean'):
     type:        type of cycle, 'annual', 'diurnal' or 'annual-diurnal'
     percentiles: The percentiles to extract of the climatology,
                   the special key 'mean' is for the mean not median, that corresponds to percentile 50
+                  the special key 'std' is for the standar deviation
     OUTPUTS
     cly : array of climatology, the dimensions are:
           [month, percentile] if are of type annual
@@ -510,6 +511,19 @@ def Cycles(serie, type='annual-diurnal', percentiles='mean'):
         if percentiles == 'mean':
             cly = np.zeros((12,24), dtype=float)
             idx = serie.groupby(lambda x: (x.month, x.hour)).agg(np.mean)
+            for m in range(12):
+                for h in range(24):
+                    try:
+                        cly[m,h] = idx[(m+1,h)]
+                    except:
+                        ide = np.where(idx.index == (m+1,h))[0]
+                        if len(ide)== 0:
+                            cly[m,h] = np.nan
+                        else:
+                            cly[m,h] = idx.iloc[ide,0].values
+        elif percentiles == 'std':
+            cly = np.zeros((12,24), dtype=float)
+            idx = serie.groupby(lambda x: (x.month, x.hour)).agg(np.std)
             for m in range(12):
                 for h in range(24):
                     try:
@@ -538,6 +552,8 @@ def Cycles(serie, type='annual-diurnal', percentiles='mean'):
     elif type == 'annual':
         if percentiles == 'mean':
             cly = serie.groupby(lambda x: x.month).agg(np.mean).values
+        elif percentiles == 'std':
+            cly = serie.groupby(lambda x: x.month).agg(np.std).values
         else:
             cly = np.zeros((12,len(percentiles)), dtype=float)
             idx = serie.groupby(lambda x: x.month)
@@ -554,6 +570,8 @@ def Cycles(serie, type='annual-diurnal', percentiles='mean'):
     elif type == 'diurnal':
         if percentiles == 'mean':
             cly = serie.groupby(lambda x: x.hour).agg(np.mean).values
+        elif percentiles == 'std':
+            cly = serie.groupby(lambda x: x.hour).agg(np.std).values
         else:
             cly = np.zeros((24,len(percentiles)), dtype=float)
             idx = serie.groupby(lambda x: x.hour)

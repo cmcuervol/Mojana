@@ -917,6 +917,55 @@ def GraphCorrelogram(Corr, title='', color=rojo,
     else:
         print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
 
+def GraphSerieENSO(INDEX, serie, twin=True, labelENSO='', labelSerie='', title='',
+                     name='ENSO', pdf=True, png=False, PathFigs=Path,):
+    """
+    Graph correlogram
+    INPUTS
+    Corr      : Array with correlation
+    label     : String to put as y-label, default is the name of column choosen
+    name      : stringo for save the figure
+    Path      : abtolute Path to save files
+    """
+
+    # define some random data that emulates your indeded code:
+    plt.close('all')
+    fig = plt.figure(figsize=(12.8,8))
+    ax = fig.add_subplot(111)
+    if twin == True:
+        ax.plot(INDEX,linewidth=2,color=rojo)
+
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
+        ax.set_ylabel(labelENSO, color=rojo)
+        ax.tick_params(axis='y', labelcolor=rojo)
+
+        ax2 = ax.twinx()
+        ax2.plot(serie,linewidth=2,color=verde)
+        ax2.set_ylabel(labelSerie, color=verde)
+        ax2.tick_params(axis='y', labelcolor=verde)
+    else:
+        ax.plot(serie,linewidth=2,label=labelSerie,color=verde)
+        ax.plot(INDEX,linewidth=2,label=labelENSO, color=rojo)
+
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
+        ax.set_ylabel('Anomalias')
+        ax.legend(loc=0)
+
+
+    ax.set_title(title)
+    ax.spines['top'].set_visible(False)
+    # ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
+    if pdf == True:
+        plt.savefig(os.path.join(PathFigs, name+'.pdf'), format='pdf', transparent=True)
+        if png == True:
+            plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    elif png == True:
+        plt.savefig(os.path.join(PathFigs, name+'.png'), transparent=True)
+    else:
+        print("Graph not saved. To save it at least one of png or pdf parameters must be True.")
+
 def GraphScatter(X,Y,xlabel='', ylabel='', title='', name='Scatter', pdf=True, png=False, PathFigs=Path,):
     """
     Grahp histogram
