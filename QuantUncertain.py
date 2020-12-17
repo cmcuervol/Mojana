@@ -74,6 +74,7 @@ u_MEL= np.empty((len(Estaciones), len(Tr)), dtype=float)
 dist = np.empty(len(Estaciones), dtype='<U15')
 
 pbar = tqdm(total=len(Estaciones), desc='Fittin station: ')
+
 for i in range(len(Estaciones)):
     if Est_path.endswith('CleanSedimentos') == False:
         Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
@@ -97,6 +98,8 @@ for i in range(len(Estaciones)):
     serie = serie.groupby(lambda y : y.year).max()
     serie = serie[~np.isnan(serie.values)].values.ravel()
 
+    if len(serie)  == 0:
+        continue
     try:
         Q_LM[i,:], Q_MEL[i,:], dist[i] = QuantilBestFit(serie, Tr)
     except:
