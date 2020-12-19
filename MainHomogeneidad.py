@@ -20,11 +20,17 @@ from Modules.Homogeneidad import FSimple, FMod, Bartlett, AnsariBradley, Levene
 from Modules.Homogeneidad import TSimple, TMod, UMann, KruskallWallis
 
 ################################   INPUT   #####################################
-Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
-# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
+# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
+Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Tests/Homogeneidad'))
 
 Estaciones = Listador(Est_path,final='.csv')
+
+pruebas_media = ['T-M', 'T-S', 'M-W', 'K-W']
+pruebas_var = ['F-M', 'F-S', 'A-B', 'B', 'L']
+
+Res_Med = pd.DataFrame([], columns=pruebas_media)
+Res_std = pd.DataFrame([], columns=pruebas_var)
 
 for i in range(len(Estaciones)):
 
@@ -40,7 +46,7 @@ for i in range(len(Estaciones)):
         label = 'Caudal '+ unidades if Meta.iloc[-4].values[0]=='CAUDAL' else 'Nivel '+unidades
 
     data = Read.EstacionCSV_pd(Estaciones[i], Est, path=Est_path)
-
+    data.index = [dt.datetime.strptime(fecha.strftime("%Y-%m-%d") , "%Y-%d-%m") for fecha in data.index]
     # Est = 'SUCRE [25027110]'
     # data = pd.read_csv(Est + '.csv', index_col = 0, header = None)
     dates = data.index
@@ -52,8 +58,6 @@ for i in range(len(Estaciones)):
     alpha = 0.01
     ventana = 12*5
 
-    pruebas_media = ['T-M', 'T-S', 'M-W', 'K-W']
-    pruebas_var = ['F-M', 'F-S', 'A-B', 'B', 'L']
 
     ################################################################################
     ##########################   PRUEBAS DE TENDENCIA   ############################
@@ -122,6 +126,8 @@ for i in range(len(Estaciones)):
     #
     #    TS.append(ts)
     #    TM.append(tm)
+
+
 
     ################################   FIGURE   ####################################
 
@@ -303,3 +309,19 @@ for i in range(len(Estaciones)):
     ax2.legend(handles=[red_patch, gray_patch], fontsize = fontsize)
 
     plt.savefig(os.path.join(Path_out,'HOMG_' + Est + '.png'), dpi = 400)
+
+
+    Med = pd.Series(np.sum(med, axis=0),name=Est, index=pruebas_media)
+    Res_Med = Res_Med.append(Med)
+    std = pd.Series(np.sum(var, axis=0),name=Est, index=pruebas_var)
+    Res_std = Res_std.append(std)
+
+    if Est_path.endswith('CleanNiveles'):
+        sufix = 'NR'
+    elif Est_path.endswith('CleanSedimentos'):
+        sufix = 'Sed'
+    else:
+        sufix = ''
+
+Res_Med.to_csv(os.path.join(Path_out,f'ResumenMedia_{sufix}.csv'))
+Res_std.to_csv(os.path.join(Path_out,f'ResumenVarianza_{sufix}.csv'))

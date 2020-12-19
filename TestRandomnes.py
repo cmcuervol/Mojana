@@ -259,6 +259,11 @@ for i in range(len(Estaciones)):
         Esta  += 'NR'
 
     Dat = Read.EstacionCSV_pd(Estaciones[i], Name, path=Est_path)
+    # if Estaciones[i].endswith('N.csv') == False:
+    try:
+        Dat.index = [dt.datetime.strptime(fecha.strftime("%Y-%m-%d") , "%Y-%d-%m") for fecha in Dat.index]
+    except:
+        pass
     Dat  = Dat.dropna()
     # dat =  Dat.values.ravel()
     # yearly  = Dat.groupby(lambda y: y.year).max().values.ravel()
@@ -275,7 +280,7 @@ for i in range(len(Estaciones)):
                             write=True, name=Esta,
                             graph=True, label=Meta.iloc[-2].values[0], title=Name,
                             pdf=False, png=True)
-    Serie = OuliersENSOjust(Dat.sort_index(),method='MAD', ENSO=ENSO,
+    serie = OuliersENSOjust(Dat.sort_index(),method='MAD', ENSO=ENSO,
                             write=True, name=Esta,
                             graph=True, label=Meta.iloc[-2].values[0], title=Name,
                             pdf=False, png=True)

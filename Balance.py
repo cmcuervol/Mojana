@@ -10,6 +10,8 @@ import datetime as dt
 from Modules import Read
 from Modules.Utils import Listador
 from Modules.FitStats import BestFit, QuantilBestFit
+from PDF_fit import OuliersENSOjust
+from ENSO import ONIdata
 
 Path_yearly = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Datos/Anuales/'))
 Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
@@ -17,23 +19,39 @@ Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Balance'))
 
 Tr = np.array([2.33, 5, 10, 25, 50, 100, 200, 500, 1000])
 
-Magan_d = Read.EstacionCSV_pd('25027680.csv', 'MAGANGUE',    path=Est_path)
-Barbo_d = Read.EstacionCSV_pd('25027530.csv', 'BARBOSA',     path=Est_path)
-Armen_d = Read.EstacionCSV_pd('25027360.csv', 'ARMENIA',     path=Est_path)
-Cruz3_d = Read.EstacionCSV_pd('25027640.csv', 'CRUCES',      path=Est_path)
-Monte_d = Read.EstacionCSV_pd('25017010.csv', 'MONTELIBANO', path=Est_path)
+Magan_m = Read.EstacionCSV_pd('25027680.csv', 'MAGANGUE',    path=Est_path)
+Barbo_m = Read.EstacionCSV_pd('25027530.csv', 'BARBOSA',     path=Est_path)
+Armen_m = Read.EstacionCSV_pd('25027360.csv', 'ARMENIA',     path=Est_path)
+Cruz3_m = Read.EstacionCSV_pd('25027640.csv', 'CRUCES',      path=Est_path)
+Monte_m = Read.EstacionCSV_pd('25017010.csv', 'MONTELIBANO', path=Est_path)
 
-Magan_sum = Magan_d.groupby(lambda y : y.year).sum()
-Barbo_sum = Barbo_d.groupby(lambda y : y.year).sum()
-Armen_sum = Armen_d.groupby(lambda y : y.year).sum()
-Cruz3_sum = Cruz3_d.groupby(lambda y : y.year).sum()
-Monte_sum = Monte_d.groupby(lambda y : y.year).sum()
+Magan_m.index = [dt.datetime.strptime(fecha.strftime("%Y-%m-%d") , "%Y-%d-%m") for fecha in Magan_m.index]
+Barbo_m.index = [dt.datetime.strptime(fecha.strftime("%Y-%m-%d") , "%Y-%d-%m") for fecha in Barbo_m.index]
+Armen_m.index = [dt.datetime.strptime(fecha.strftime("%Y-%m-%d") , "%Y-%d-%m") for fecha in Armen_m.index]
+Cruz3_m.index = [dt.datetime.strptime(fecha.strftime("%Y-%m-%d") , "%Y-%d-%m") for fecha in Cruz3_m.index]
+Monte_m.index = [dt.datetime.strptime(fecha.strftime("%Y-%m-%d") , "%Y-%d-%m") for fecha in Monte_m.index]
 
-Magan_max = Magan_d.groupby(lambda y : y.year).max()
-Barbo_max = Barbo_d.groupby(lambda y : y.year).max()
-Armen_max = Armen_d.groupby(lambda y : y.year).max()
-Cruz3_max = Cruz3_d.groupby(lambda y : y.year).max()
-Monte_max = Monte_d.groupby(lambda y : y.year).max()
+ONI = ONIdata()
+ONI = ONI['Anomalie'].astype(float)
+ENSO = ONI[np.where((ONI.values<=-0.5)|(ONI.values>=0.5))[0]]
+Magan = OuliersENSOjust(Magan_m, ENSO, method='IQR', lim_inf=0,  write=False)
+Barbo = OuliersENSOjust(Barbo_m, ENSO, method='IQR', lim_inf=0,  write=False)
+Armen = OuliersENSOjust(Armen_m, ENSO, method='IQR', lim_inf=0,  write=False)
+Cruz3 = OuliersENSOjust(Cruz3_m, ENSO, method='IQR', lim_inf=0,  write=False)
+Monte = OuliersENSOjust(Monte_m, ENSO, method='IQR', lim_inf=0,  write=False)
+
+
+Magan_sum = Magan.groupby(lambda y : y.year).sum()
+Barbo_sum = Barbo.groupby(lambda y : y.year).sum()
+Armen_sum = Armen.groupby(lambda y : y.year).sum()
+Cruz3_sum = Cruz3.groupby(lambda y : y.year).sum()
+Monte_sum = Monte.groupby(lambda y : y.year).sum()
+
+Magan_max = Magan.groupby(lambda y : y.year).max()
+Barbo_max = Barbo.groupby(lambda y : y.year).max()
+Armen_max = Armen.groupby(lambda y : y.year).max()
+Cruz3_max = Cruz3.groupby(lambda y : y.year).max()
+Monte_max = Monte.groupby(lambda y : y.year).max()
 
 
 Magan_LM, Magan_MEL, Magan_dist = QuantilBestFit(Magan_max.dropna().values, Tr=Tr)

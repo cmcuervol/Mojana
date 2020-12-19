@@ -140,9 +140,9 @@ def MEIdata():
 
     return MEI
 
-Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
+# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
 # Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
-# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanSedimentos'))
+Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanSedimentos'))
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'ENSO'))
 
 
@@ -222,8 +222,12 @@ for i in range(len(Estaciones)):
         serie.index = pd.DatetimeIndex(serie.index)
     else:
         serie = Read.EstacionCSV_pd(Estaciones[i], Est, path=Est_path)
-
-    Anoma = Anomalies(serie)
+        if Estaciones[i].endswith('N.csv') == False:
+            serie.index = [dt.datetime.strptime(fecha.strftime("%Y-%m-%d") , "%Y-%d-%m") for fecha in serie.index]
+    try:
+        Anoma = Anomalies(serie)
+    except:
+        continue
 
     monthly = Anoma.groupby(lambda y : (y.year,y.month)).mean()
     monthly.index = [dt.datetime(idx[0],idx[1],1)  for idx  in monthly.index]
