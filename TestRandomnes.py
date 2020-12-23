@@ -252,6 +252,9 @@ Outl = pd.DataFrame([], columns=['outlier_inf','outlier_sup'])
 for i in range(len(Estaciones)):
 
     Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
+    if Meta.iloc[-2].values[0] == 'Nivel máximo diario':
+        continue
+
     Name = Meta.iloc[0].values[0]
     Esta  = Estaciones[i].split('.csv')[0]
     if Est_path.endswith('CleanNiveles'):

@@ -27,10 +27,12 @@ Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Tests/Homoge
 Estaciones = Listador(Est_path,final='.csv')
 
 pruebas_media = ['T-M', 'T-S', 'M-W', 'K-W']
-pruebas_var = ['F-M', 'F-S', 'A-B', 'B', 'L']
+pruebas_var   = ['F-M', 'F-S', 'A-B', 'B', 'L']
+pruebas_tend  = ['MK-test', 'T-test']
 
-Res_Med = pd.DataFrame([], columns=pruebas_media)
-Res_std = pd.DataFrame([], columns=pruebas_var)
+Res_Med  = pd.DataFrame([], columns=pruebas_media)
+Res_std  = pd.DataFrame([], columns=pruebas_var)
+Res_tend = pd.DataFrame([], columns=pruebas_tend)
 
 for i in range(len(Estaciones)):
 
@@ -47,6 +49,8 @@ for i in range(len(Estaciones)):
 
     data = Read.EstacionCSV_pd(Estaciones[i], Est, path=Est_path)
     data.index = [dt.datetime.strptime(fecha.strftime("%Y-%m-%d") , "%Y-%d-%m") for fecha in data.index]
+
+    data = data.sort_index()
     # Est = 'SUCRE [25027110]'
     # data = pd.read_csv(Est + '.csv', index_col = 0, header = None)
     dates = data.index
@@ -315,6 +319,8 @@ for i in range(len(Estaciones)):
     Res_Med = Res_Med.append(Med)
     std = pd.Series(np.sum(var, axis=0),name=Est, index=pruebas_var)
     Res_std = Res_std.append(std)
+    tend = pd.Series(np.array([hMK,hTR]),name=Est, index=pruebas_tend)
+    Res_tend = Res_tend.append(tend)
 
     if Est_path.endswith('CleanNiveles'):
         sufix = 'NR'
@@ -323,5 +329,6 @@ for i in range(len(Estaciones)):
     else:
         sufix = ''
 
-Res_Med.to_csv(os.path.join(Path_out,f'ResumenMedia_{sufix}.csv'))
-Res_std.to_csv(os.path.join(Path_out,f'ResumenVarianza_{sufix}.csv'))
+Res_Med .to_csv(os.path.join(Path_out,f'ResumenMedia_{sufix}.csv'))
+Res_std .to_csv(os.path.join(Path_out,f'ResumenVarianza_{sufix}.csv'))
+Res_tend.to_csv(os.path.join(Path_out,f'ResumenTendencia_{sufix}.csv'))
