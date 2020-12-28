@@ -35,8 +35,8 @@ Lq    = [NORMq, EXPq, GUMq, GPAq, GEVq, GLOq, LLOG3q, LP3q]
 ################################   INPUT   #####################################
 
 # Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
-Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
-# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanSedimentos'))
+# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
+Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanSedimentos'))
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Ajustes'))
 
 # Read.SplitAllIDEAM('NivelReal', Est_path=Est_path,Nivel=True)
@@ -106,6 +106,7 @@ for i in range(len(Estaciones)):
         else:
             Est  = Name+'Caudal' if Meta.iloc[-4].values[0]=='CAUDAL' else Name+'Nivel'
 
+        label = u'Caudal [m$^{3}$/s]' if Meta.iloc[-4].values[0]=='CAUDAL' else 'Nivel'
         serie = Read.EstacionCSV_pd(Estaciones[i], Est, path=Est_path)
         try:
             serie.index = [dt.datetime.strptime(fecha.strftime("%Y-%m-%d") , "%Y-%d-%m") for fecha in serie.index]
@@ -113,6 +114,7 @@ for i in range(len(Estaciones)):
             pass
     else:
         Est  = Estaciones[i].split('_')[1].split('.csv')[0]
+        label = 'Transporte [KTon/dia]'
         serie = pd.read_csv(os.path.join(Est_path, Estaciones[i]), index_col=0)
         serie.index = pd.DatetimeIndex(serie.index)
 
@@ -212,7 +214,7 @@ for i in range(len(Estaciones)):
     ax0 = plt.subplot(gs[0], sharex = ax1)
     plt.hist(serie, bins = 30, density = True, alpha = 0.5, cumulative = True, label = 'Mediciones')
     ax0.set_ylabel('CDF', fontsize = fontsize, labelpad = 0)
-    ax0.set_xlabel(u'Caudal [m$^{3}$/s]' if Meta.iloc[-4].values[0]=='CAUDAL' else 'Nivel',
+    ax0.set_xlabel(label,
                    fontsize = fontsize, labelpad = 0, x = 1.05)
 
     plt.title(u'Máxima verosimilitud', fontsize = fontsize)
@@ -288,7 +290,7 @@ for i in range(len(Estaciones)):
     plt.xlim([np.min(serie), np.max(serie)])
     plt.ylim([0,1])
     plt.ylabel('CDF', fontsize = fontsize, labelpad = 0)
-    plt.xlabel(u'Caudal [m$^{3}$/s]' if Meta.iloc[-4].values[0]=='CAUDAL' else 'Nivel',
+    plt.xlabel(label,
                fontsize = fontsize, labelpad = 0)
     # plt.xlabel('Nivel [m.s.n.m]', fontsize = fontsize, labelpad = 0)
     plt.tick_params(axis='x', which='both', labelsize=fontsize, direction = 'in')
@@ -315,7 +317,7 @@ for i in range(len(Estaciones)):
     plt.xlim([np.min(serie), np.max(serie)])
     plt.ylim([0,1])
     plt.ylabel('CDF', fontsize = fontsize, labelpad = 0)
-    plt.xlabel(u'Caudal [m$^{3}$/s]' if Meta.iloc[-4].values[0]=='CAUDAL' else 'Nivel',
+    plt.xlabel(label,
                fontsize = fontsize, labelpad = 0)
     # plt.xlabel('Nivel [m.s.n.m]', fontsize = fontsize, labelpad = 0)
     plt.tick_params(axis='x', which='both', labelsize=fontsize, direction = 'in')
@@ -410,7 +412,7 @@ for i in range(len(Estaciones)):
 
     #plt.ylim([0, 3500])
     plt.xlabel(u'Periodo de retorno [años]', fontsize = fontsize, labelpad = 0)
-    plt.ylabel(u'Caudal [m$^{3}$/s]' if Meta.iloc[-4].values[0]=='CAUDAL' else 'Nivel',
+    plt.ylabel(label,
                fontsize = fontsize, labelpad = 0)
     # plt.ylabel('Nivel [m.s.n.m]', fontsize = fontsize, labelpad = 0)
     plt.tick_params(axis='x', which='both', labelsize=fontsize, direction = 'in')
@@ -452,7 +454,7 @@ for i in range(len(Estaciones)):
             lw = 1.5, label = 'L-momentos bandas de confianza', clip_on = False, zorder = 4)
 
     plt.xlabel(u'Periodo de retorno [años]', fontsize = fontsize, labelpad = 0)
-    plt.ylabel(u'Caudal [m$^{3}$/s]' if Meta.iloc[-4].values[0]=='CAUDAL' else 'Nivel',
+    plt.ylabel(label,
                fontsize = fontsize, labelpad = 0)
     # plt.ylabel('Nivel [m.s.n.m]', fontsize = fontsize, labelpad = 0)
     plt.tick_params(axis='x', which='both', labelsize=fontsize, direction = 'in')
