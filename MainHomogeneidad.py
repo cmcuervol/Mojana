@@ -21,10 +21,15 @@ from Modules.Homogeneidad import TSimple, TMod, UMann, KruskallWallis
 
 ################################   INPUT   #####################################
 # Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
-Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
+# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
+Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanSedimentos'))
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Tests/Homogeneidad'))
 
 Estaciones = Listador(Est_path,final='.csv')
+
+if Est_path.endswith('CleanSedimentos'):
+    Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Sedimentos/Ajustes/'))
+    Estaciones = Listador(Est_path, inicio='Trans',final='.csv')
 
 pruebas_media = ['T-M', 'T-S', 'M-W', 'K-W']
 pruebas_var   = ['F-M', 'F-S', 'A-B', 'B', 'L']
@@ -35,21 +40,31 @@ Res_std  = pd.DataFrame([], columns=pruebas_var)
 Res_tend = pd.DataFrame([], columns=pruebas_tend)
 
 for i in range(len(Estaciones)):
+    if Est_path.endswith('CleanSedimentos') == False:
+        Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
+        Name = Meta.iloc[0].values[0]
+        if Est_path.endswith('CleanNiveles'):
+            Est = Name + 'NR'
+            unidades = '[m]'
+            label = 'Nivel [m]'
+        else:
+            Est  = Name+'Caudal' if Meta.iloc[-4].values[0]=='CAUDAL' else Name+'Nivel'
+            unidades = '[m$^{3}$ s$^{-1}$]' if Meta.iloc[-4].values[0]=='CAUDAL' else '[cm]'
+            label = 'Caudal '+ unidades if Meta.iloc[-4].values[0]=='CAUDAL' else 'Nivel '+unidades
 
-    Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
-    Name = Meta.iloc[0].values[0]
-    if Est_path.endswith('CleanNiveles'):
-        Est = Name + 'NR'
-        unidades = '[m]'
-        label = 'Nivel [m]'
+        data = Read.EstacionCSV_pd(Estaciones[i], Est, path=Est_path)
+        data.index = [dt.datetime.strptime(fecha.strftime("%Y-%m-%d") , "%Y-%d-%m") for fecha in data.index]
     else:
-        Est  = Name+'Caudal' if Meta.iloc[-4].values[0]=='CAUDAL' else Name+'Nivel'
-        unidades = '[m$^{3}$ s$^{-1}$]' if Meta.iloc[-4].values[0]=='CAUDAL' else '[cm]'
-        label = 'Caudal '+ unidades if Meta.iloc[-4].values[0]=='CAUDAL' else 'Nivel '+unidades
+        Est  = Estaciones[i].split('_')[1].split('.csv')[0]
+        data = pd.read_csv(os.path.join(Est_path, Estaciones[i]), index_col=0)
+        data.index = pd.DatetimeIndex(data.index)
+        mensual = data.groupby(lambda m: (m.year,m.month)).max()
+        mensual.index = [dt.datetime(t[0],t[1],1) for t in mensual.index]
+        data = mensual
+        unidades = '[kTon/dia]'
+        label = 'Trans [kTon/dia]'
 
-    data = Read.EstacionCSV_pd(Estaciones[i], Est, path=Est_path)
-    data.index = [dt.datetime.strptime(fecha.strftime("%Y-%m-%d") , "%Y-%d-%m") for fecha in data.index]
-
+    data = data.dropna()
     data = data.sort_index()
     # Est = 'SUCRE [25027110]'
     # data = pd.read_csv(Est + '.csv', index_col = 0, header = None)
