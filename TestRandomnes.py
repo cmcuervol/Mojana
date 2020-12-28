@@ -57,12 +57,12 @@ def OuliersENSOjust(Serie, ENSO=ENSO, method='IQR', lim_inf=0,
         if write == True:
             outliers = Serie.iloc[injust]
             outliers.to_csv(os.path.join(Path_out, f'Outliers_{name}_{method}.csv'))
-        if graph == True:
-            outliers = Serie.iloc[injust]
-            GraphSerieOutliersMAD(Serie, outliers,
-                                  name=f'Outliers_{name}_{method}',
-                                  label=label,title=title,pdf=pdf, png=png,
-                                  PathFigs=Path_out)
+    if graph == True:
+        outliers = Serie.iloc[injust]
+        GraphSerieOutliersMAD(Serie, outliers,
+                              name=f'Outliers_{name}_{method}',
+                              label=label,title=title,pdf=pdf, png=png,
+                              PathFigs=Path_out)
 
     return S
 
@@ -243,7 +243,7 @@ Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
 # Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
 
 
-Estaciones = Listador(Est_path,final='.csv')
+Estaciones = Listador(Est_path,final='26247020.csv')
 
 Pruebas = ['Rachas', 'PuntoCambio', 'Spearman', 'Anderson','MannKendall']
 Test = pd.DataFrame([], columns=Pruebas)
@@ -259,7 +259,7 @@ for i in range(len(Estaciones)):
     Esta  = Estaciones[i].split('.csv')[0]
     if Est_path.endswith('CleanNiveles'):
         Name += 'NR_'
-        Esta  += 'NR'
+        Esta += 'NR'
 
     Dat = Read.EstacionCSV_pd(Estaciones[i], Name, path=Est_path)
     # if Estaciones[i].endswith('N.csv') == False:
@@ -307,5 +307,5 @@ if Est_path.endswith('CleanNiveles'):
     sufix = 'NR'
 else:
     sufix = ''
-Test.to_csv(os.path.join(Path_out,f'Test_{sufix}.csv'),     sep=',')
-Outl.to_csv(os.path.join(Path_out,f'Outliers_{sufix}.csv'), sep=',')
+# Test.to_csv(os.path.join(Path_out,f'Test_{sufix}.csv'),     sep=',')
+# Outl.to_csv(os.path.join(Path_out,f'Outliers_{sufix}.csv'), sep=',')
