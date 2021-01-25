@@ -900,9 +900,9 @@ def GraphCorrelogram(Corr, title='', color=rojo,
 
     ax.plot(Corr,linewidth=2,color=color)
 
-    ax.set_xlabel('Rezago')
-    ax.set_ylabel(u'Correlación')
-    ax.set_title(title)
+    ax.set_xlabel('Rezago',fontsize=14)
+    ax.set_ylabel(u'Correlación',fontsize=14)
+    ax.set_title(title,fontsize=14)
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -936,23 +936,23 @@ def GraphSerieENSO(INDEX, serie, twin=True, labelENSO='', labelSerie='', title='
         ax.plot(INDEX,linewidth=2,color=rojo)
 
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
-        ax.set_ylabel(labelENSO, color=rojo)
+        ax.set_ylabel(labelENSO, color=rojo,fontsize=14)
         ax.tick_params(axis='y', labelcolor=rojo)
 
         ax2 = ax.twinx()
         ax2.plot(serie,linewidth=2,color=verde)
-        ax2.set_ylabel(labelSerie, color=verde)
+        ax2.set_ylabel(labelSerie, color=verde,fontsize=14)
         ax2.tick_params(axis='y', labelcolor=verde)
     else:
         ax.plot(serie,linewidth=2,label=labelSerie,color=verde)
         ax.plot(INDEX,linewidth=2,label=labelENSO, color=rojo)
 
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
-        ax.set_ylabel('Anomalias')
+        ax.set_ylabel('Anomalias',fontsize=14)
         ax.legend(loc=0)
 
 
-    ax.set_title(title)
+    ax.set_title(title,fontsize=14)
     ax.spines['top'].set_visible(False)
     # ax.spines['right'].set_visible(False)
     # ax.spines['bottom'].set_visible(False)
