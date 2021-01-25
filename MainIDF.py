@@ -30,7 +30,7 @@ def MaxAnual(Esta, Path_series, window=None):
     """
     Dat = Read.EstacionCSV_np(Esta, Esta.split('.csv')[0],Path_series)
     if window is not None:
-        Dat = Dat.rolling(f'{window}D').mean()
+        Dat = Dat.rolling(f'{window}D').sum()
         Dat = Dat.dropna()
     Max = Dat.groupby(lambda y : y.year).max()
 
@@ -111,7 +111,8 @@ theta = -0.82
 # Compare Wilches with VargasDiazGranados
 Tr = np.array([2,3,5,10,25,50,100])
 
-Nombre = 'TORNO EL HACIENDA [25021470]'
+Nombre = 'ESPERANZA LA [25021340]'
+# Nombre = 'TORNO EL HACIENDA [25021470]'
 
 # IDEAM params
 # C1 = [6798.308,9998.576,14882.323,23468.705,39184.485,55085.160,75025.218]
