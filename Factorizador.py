@@ -13,6 +13,7 @@ from tqdm import  tqdm
 
 
 Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
+Est_Nivl = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
 
 # Process the raw data
 # Read.SplitAllIDEAM(Depatamento='NivelesAll', sept=';')
@@ -36,13 +37,14 @@ def ReturnPeriod(serie, value):
     p = stats.exponweib.cdf(value, *stats.exponweib.fit(serie.iloc[np.where(~np.isnan(serie))[0]].values.ravel(), 0, 1,))
     return 1./(1.-p)
 
-def FindQPR(serie, events, lag=3):
+def FindQPR(serie, events, lag=3, group='mean'):
     """
     Find flow and return period in some events
     INPUTS
     serie  : pandas series with the data
     events : indexes or dates of the events
     lag    : integer of days before to search
+    group  : kind of agrupation in the lag
     """
     q  = np.zeros(len(events))
     pr = np.zeros(len(events))
@@ -50,7 +52,14 @@ def FindQPR(serie, events, lag=3):
         day = np.where(serie.index == events[i])[0]
         if len(day) != 0:
             ide = day[0]
-            q [i] = np.nanmean(serie.iloc[ide-lag:ide+1].values)
+            if group == 'mean':
+                q [i] = np.nanmean(serie.iloc[ide-lag:ide+1].values)
+            elif group == 'max':
+                q [i] = np.nanmax(serie.iloc[ide-lag:ide+1].values)
+            elif group == 'min':
+                q [i] = np.nanmin(serie.iloc[ide-lag:ide+1].values)
+            elif group == 'sum':
+                q [i] = np.nansum(serie.iloc[ide-lag:ide+1].values)
             pr[i] = ReturnPeriod(serie, q[i])
         else:
             q [i] = np.nan
@@ -79,30 +88,33 @@ def FindQPR(serie, events, lag=3):
 #
 Magan_d = Read.EstacionCSV_pd('25027680.csv', 'MAGANGUE',    path=Est_path)
 Barbo_d = Read.EstacionCSV_pd('25027530.csv', 'BARBOSA',     path=Est_path)
+Coyog_d = Read.EstacionCSV_pd('25027930.csv', 'COYOGAL',     path=Est_path)
 Armen_d = Read.EstacionCSV_pd('25027360.csv', 'ARMENIA',     path=Est_path)
 Cruz3_d = Read.EstacionCSV_pd('25027640.csv', 'CRUCES',      path=Est_path)
 Nechi_d = Read.EstacionCSV_pd('27037010.csv', 'NECHI',       path=Est_path)
 Monte_d = Read.EstacionCSV_pd('25017010.csv', 'MONTELIBANO', path=Est_path)
 Coque_d = Read.EstacionCSV_pd('26247020.csv', 'COQUERA',     path=Est_path)
+Rayal_d = Read.EstacionCSV_pd('25027910.csv', 'RAYA',        path=Est_path)
+Varas_d = Read.EstacionCSV_pd('25027200.csv', 'VARAS',       path=Est_path)
 
-Beirt_d = Read.EstacionCSV_pd('25027760.csv', 'BEIRUT', path=Est_path)
-Marco_d = Read.EstacionCSV_pd('25027220.csv', 'MARCOS', path=Est_path)
-# Jegua_d = Read.EstacionCSV_pd('25027240.csv', 'JEGUA',  path=Est_path)
-Anton_d = Read.EstacionCSV_pd('25027180.csv', 'ANTONIO',path=Est_path)
-
+Beirt_d = Read.EstacionCSV_pd('25027760NR.csv', 'BEIRUT', path=Est_Nivl)
+Marco_d = Read.EstacionCSV_pd('25027220NR.csv', 'MARCOS', path=Est_Nivl)
+Jegua_d = Read.EstacionCSV_pd('25027240NR.csv', 'JEGUA',  path=Est_Nivl)
+Anton_d = Read.EstacionCSV_pd('25027180NR.csv', 'ANTONIO',path=Est_Nivl)
 
 # eventos
 idx   = np.where((~np.isnan(Magan_d.values))&(Magan_d.values>=10000))[0]
 dates = Magan_d.iloc[idx].index
 
 
+
 # series = [Armen, Cruz3, Nechi, Monte, Coque, Barbo, Magan, Beirt, Marco, Jegua, Anton]
 # series = [Armen, Cruz3, Nechi, Monte, Coque, Barbo, Magan, Beirt, Marco, Jegua]
 
-series = [Armen_d, Cruz3_d, Nechi_d, Monte_d, Coque_d, Barbo_d, Magan_d, Beirt_d, Marco_d, Anton_d]
+series = [Armen_d, Cruz3_d, Nechi_d, Monte_d, Coque_d, Barbo_d, Magan_d, Coyog_d, Rayal_d, Varas_d, Beirt_d, Marco_d, Anton_d, Jegua_d]
 pbar = tqdm(total=len(series), desc='Calculating return periods: ')
 for i in range(len(series)):
-    q, pr = FindQPR(series[i], events=dates, lag=3)
+    q, pr = FindQPR(series[i], events=dates, lag=5, group='max')
     if i == 0:
         Q  = q
         PR = pr
@@ -114,8 +126,8 @@ pbar.close()
 
 # Q = Q.join(Magan.iloc[idx], how='inner')
 
-Q .to_csv(os.path.join(os.getcwd(), 'CaudalesEventsMax.csv'), sep=',')
-PR.to_csv(os.path.join(os.getcwd(), 'ReturnPeriodEventsMax.csv'), sep=',')
+Q .to_csv(os.path.join(os.getcwd(), 'CaudalesEvents_5daysMax_.csv'), sep=',')
+PR.to_csv(os.path.join(os.getcwd(), 'ReturnPeriodEvents_5daysMax_.csv'), sep=',')
 
 
 # data = Magan.values

@@ -225,9 +225,9 @@ def GraphHydrografa(times, flow, title='', name='Hidrograma', pdf=True, png=Fals
 
     ax = figure.add_subplot(1,1,1)
     ax.plot(times,flow, linewidth=2,color=azul)
-    ax.set_xlabel('Time [hours]')
-    ax.set_ylabel(u'U [m$^{3}$ s$^{-1}$ mm$^{-1}$]')
-    ax.set_title(title)
+    ax.set_xlabel('Time [hours]',fontsize=16)
+    ax.set_ylabel(u'U [m$^{3}$ s$^{-1}$ mm$^{-1}$]',fontsize=16)
+    ax.set_title(title,fontsize=16)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     # ax.spines['bottom'].set_visible(False)
@@ -390,9 +390,9 @@ def GraphHietogram(Pt, Pe,t, Tr,title='', name='Hietogram', pdf=True, png=False,
         rects2 = ax.bar(x + width/2, Pe[:,i], width, label='Pe', color=rojo)
 
         # Add some text for labels, title and custom x-axis tick labels, etc.
-        ax.set_ylabel('precipitation [mm]')
-        ax.set_xlabel('time [hours]')
-        ax.set_title(str(Tr[i]))
+        ax.set_ylabel('precipitation [mm]',fontsize=16)
+        ax.set_xlabel('time [hours]',fontsize=16)
+        ax.set_title(str(Tr[i]),fontsize=16)
         ax.set_xticks(x)
         ax.set_xticklabels(t.astype(str),rotation=90)
         ax.legend()
@@ -489,9 +489,9 @@ def GraphHydrogram(times, flow, Tr, join,
             ax = figure.add_subplot(rows,columns,i+1)
 
             ax.plot(times,flow[:,i], linewidth=2,color=azul)
-            ax.set_xlabel('Time [hours]')
-            ax.set_ylabel(u'Q [m$^{3}$ s$^{-1}$]')
-            ax.set_title(str(Tr[i]))
+            ax.set_xlabel('Time [hours]',fontsize=16)
+            ax.set_ylabel(u'Q [m$^{3}$ s$^{-1}$]',fontsize=16)
+            ax.set_title(str(Tr[i]),fontsize=16)
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
             # ax.spines['bottom'].set_visible(False)
@@ -531,9 +531,9 @@ def GraphQmax(Tr, Qmax_SCS, Qmax_Sny,Qmax_Wil, title='', name='Hidrograma', pdf=
     ax.plot(Tr,Qmax_Wil, linewidth=2,color=azul, label='Willians & Hann')
     ax.set_xscale('log')
     ax.legend(loc=0)
-    ax.set_xlabel('Return period [years]')
-    ax.set_ylabel(u'Flow [m$^{3}$ s$^{-1}$]')
-    ax.set_title(title)
+    ax.set_xlabel('Return period [years]',fontsize=16)
+    ax.set_ylabel(u'Flow [m$^{3}$ s$^{-1}$]',fontsize=16)
+    ax.set_title(title,fontsize=16)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     # ax.spines['bottom'].set_visible(False)
@@ -567,13 +567,13 @@ def GraphHistrogram(Values, bins=10, label='', title='', name='Histogram', pdf=T
 
     ax.plot(histo[1],histo[0],color=azul,lw=2)
     ax.fill_between(histo[1],histo[0],color=verde,alpha=0.6)
-    ax.set_ylabel('Relative frecuency')
-    ax.set_xlabel(label)
+    ax.set_ylabel('Relative frecuency',fontsize=16)
+    ax.set_xlabel(label,fontsize=16)
 
     # ax.plot(times,flow, linewidth=2,color=azul)
     # ax.set_xlabel('Time [hours]')
     # ax.set_ylabel(u'U [m$^{3}$ s$^{-1}$ mm$^{-1}$]')
-    ax.set_title(title)
+    ax.set_title(title,fontsize=16)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     # ax.spines['bottom'].set_visible(False)
@@ -682,13 +682,13 @@ def GraphSerieOutliers(Serie, lim_inf, lim_sup, label='', title='', name='Outlie
     labels = [mes[Serie.index[int(i)][1]-1]+'\n'+str(Serie.index[int(i)][0]) for i in ticks[1:-1]]
     labels.insert(0,'')
     labels.append('')
-    ax.set_xticklabels(labels)
+    ax.set_xticklabels(labels,fontsize=16)
     # start, end = ax.get_xlim()
     # ax.xaxis.set_ticks(np.linspace(start, end, 8))
     # ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
     # ax.set_xlabel(label)
 
-    ax.set_title(title)
+    ax.set_title(title,fontsize=16)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     # ax.spines['bottom'].set_visible(False)
@@ -729,9 +729,9 @@ def GraphSerieOutliersMAD(Serie, Outliers, label='', title='', name='Outliers1',
     start, end = ax.get_xlim()
     ax.xaxis.set_ticks(np.linspace(start, end, 8))
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
-    ax.set_xlabel(label)
+    ax.set_xlabel(label,fontsize=16)
     ax.legend(loc=0)
-    ax.set_title(title)
+    ax.set_title(title,fontsize=16)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     # ax.spines['bottom'].set_visible(False)
@@ -763,10 +763,10 @@ def DurationCurve(T_super, Values, label='', title='', name='DurationCurve', pdf
     ax = figure.add_subplot(1,1,1)
 
     ax.scatter(T_super,Values, s=10, c=rojo)
-    ax.set_ylabel(label)
-    ax.set_xlabel('Porcentaje de excedencia')
+    ax.set_ylabel(label,fontsize=16)
+    ax.set_xlabel('Porcentaje de excedencia',fontsize=16)
 
-    ax.set_title(title)
+    ax.set_title(title,fontsize=16)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     # ax.spines['bottom'].set_visible(False)
@@ -864,10 +864,10 @@ def GraphSingleDF(DF, label=None, title='', color=azul,
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
 
     if label is None:
-        ax.set_ylabel(DF[0].columns[col])
+        ax.set_ylabel(DF[0].columns[col],fontsize=16)
     else:
-        ax.set_ylabel(label)
-    ax.set_title(title)
+        ax.set_ylabel(label,fontsize=16)
+    ax.set_title(title,fontsize=16)
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -900,9 +900,9 @@ def GraphCorrelogram(Corr, title='', color=rojo,
 
     ax.plot(Corr,linewidth=2,color=color)
 
-    ax.set_xlabel('Rezago',fontsize=14)
-    ax.set_ylabel(u'Correlación',fontsize=14)
-    ax.set_title(title,fontsize=14)
+    ax.set_xlabel('Rezago',fontsize=16)
+    ax.set_ylabel(u'Correlación',fontsize=16)
+    ax.set_title(title,fontsize=16)
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -936,23 +936,23 @@ def GraphSerieENSO(INDEX, serie, twin=True, labelENSO='', labelSerie='', title='
         ax.plot(INDEX,linewidth=2,color=rojo)
 
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
-        ax.set_ylabel(labelENSO, color=rojo,fontsize=14)
+        ax.set_ylabel(labelENSO, color=rojo,fontsize=16)
         ax.tick_params(axis='y', labelcolor=rojo)
 
         ax2 = ax.twinx()
         ax2.plot(serie,linewidth=2,color=verde)
-        ax2.set_ylabel(labelSerie, color=verde,fontsize=14)
+        ax2.set_ylabel(labelSerie, color=verde,fontsize=16)
         ax2.tick_params(axis='y', labelcolor=verde)
     else:
         ax.plot(serie,linewidth=2,label=labelSerie,color=verde)
         ax.plot(INDEX,linewidth=2,label=labelENSO, color=rojo)
 
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
-        ax.set_ylabel('Anomalias',fontsize=14)
+        ax.set_ylabel('Anomalias',fontsize=16)
         ax.legend(loc=0)
 
 
-    ax.set_title(title,fontsize=14)
+    ax.set_title(title,fontsize=16)
     ax.spines['top'].set_visible(False)
     # ax.spines['right'].set_visible(False)
     # ax.spines['bottom'].set_visible(False)
@@ -987,13 +987,13 @@ def GraphScatter(X,Y,xlabel='', ylabel='', title='', name='Scatter', pdf=True, p
 
     ax.scatter(X,Y,c=azul)
     ax.plot(xp,reg(xp),'--',color=verde, linewidth=1)
-    ax.set_ylabel(ylabel)
-    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel,fontsize=16)
+    ax.set_xlabel(xlabel,fontsize=16)
 
     # ax.plot(times,flow, linewidth=2,color=azul)
     # ax.set_xlabel('Time [hours]')
     # ax.set_ylabel(u'U [m$^{3}$ s$^{-1}$ mm$^{-1}$]')
-    ax.set_title(title)
+    ax.set_title(title,fontsize=16)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     # ax.spines['bottom'].set_visible(False)
