@@ -670,7 +670,7 @@ def GraphSerieOutliers(Serie, lim_inf, lim_sup, label='', title='', name='Outlie
 
     ax.plot(np.arange(len(Serie)),Serie.values,color=azul,lw=2)
     ax.fill_between(np.arange(len(Serie)),[lim_sup]*len(Serie),[lim_inf]*len(Serie),color=verde,alpha=0.6)
-    ax.set_ylabel(label)
+    ax.set_ylabel(label, fontsize=16)
     # ticks = ax.get_xticks()
     # labels = [Serie.index[int(i)].strftime('%H:%M') for i in ticks[:-1]]
     start, end = ax.get_xlim()
@@ -682,7 +682,7 @@ def GraphSerieOutliers(Serie, lim_inf, lim_sup, label='', title='', name='Outlie
     labels = [mes[Serie.index[int(i)][1]-1]+'\n'+str(Serie.index[int(i)][0]) for i in ticks[1:-1]]
     labels.insert(0,'')
     labels.append('')
-    ax.set_xticklabels(labels,fontsize=16)
+    # ax.set_xticklabels(labels,fontsize=16)
     # start, end = ax.get_xlim()
     # ax.xaxis.set_ticks(np.linspace(start, end, 8))
     # ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
@@ -723,13 +723,13 @@ def GraphSerieOutliersMAD(Serie, Outliers, label='', title='', name='Outliers1',
 
     ax.plot(Serie,color=azul,lw=2, label='Serie')
     ax.plot(Outliers,marker='*',color=rojo, linestyle='None', label='Outliers')
-    ax.set_ylabel(label)
+    ax.set_ylabel(label,fontsize=16)
     # ticks = ax.get_xticks()
     # labels = [Serie.index[int(i)].strftime('%H:%M') for i in ticks[:-1]]
     start, end = ax.get_xlim()
     ax.xaxis.set_ticks(np.linspace(start, end, 8))
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b\n%Y'))
-    ax.set_xlabel(label,fontsize=16)
+    # ax.set_xlabel(label,fontsize=16)
     ax.legend(loc=0)
     ax.set_title(title,fontsize=16)
     ax.spines['top'].set_visible(False)
