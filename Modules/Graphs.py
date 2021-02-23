@@ -338,8 +338,8 @@ def GraphIDF(Int, duration, frecuency, cmap_name='jet', name='IDF', pdf=True, pn
     ax.legend(handles, labels, loc='center right', bbox_to_anchor=(1, 0.5),
               fancybox=False, shadow=False)
 
-    ax.set_xlabel('Duration [minutes]',)
-    ax.set_ylabel('Intensity [mm/hour]')
+    ax.set_xlabel('Duration [minutes]',fontsize=16)
+    ax.set_ylabel('Intensity [mm/hour]',fontsize=16)
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -857,7 +857,7 @@ def GraphSingleDF(DF, label=None, title='', color=azul,
 
     # define some random data that emulates your indeded code:
     plt.close('all')
-    fig = plt.figure(figsize=(12.8,8))
+    fig = plt.figure(figsize=(7.9,4.8))
     ax = fig.add_subplot(111)
 
     ax.plot(DF,linewidth=2,color=color)
@@ -895,7 +895,7 @@ def GraphCorrelogram(Corr, title='', color=rojo,
 
     # define some random data that emulates your indeded code:
     plt.close('all')
-    fig = plt.figure(figsize=(12.8,8))
+    fig = plt.figure(figsize=(7.9,4.8))
     ax = fig.add_subplot(111)
 
     ax.plot(Corr,linewidth=2,color=color)
@@ -930,7 +930,7 @@ def GraphSerieENSO(INDEX, serie, twin=True, labelENSO='', labelSerie='', title='
 
     # define some random data that emulates your indeded code:
     plt.close('all')
-    fig = plt.figure(figsize=(12.8,8))
+    fig = plt.figure(figsize=(7.9,4.8))
     ax = fig.add_subplot(111)
     if twin == True:
         ax.plot(INDEX,linewidth=2,color=rojo)
