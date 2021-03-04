@@ -98,27 +98,73 @@ Estaciones = Listador(Path_series, final='.csv')
 Tr = np.array([2.33, 5, 10, 25, 50, 100, 200, 500, 1000])
 theta = -0.82
 #
-for i in range(len(Estaciones)):
-    Name = Estaciones[i].split('.csv')[0]
-
-    data = MaxAnual(Estaciones[i], Path_series)
-    dP, Idq = Pulgarin(data, Tr, theta)
-    GraphIDF(Idq, dP, Tr, cmap_name='jet', name=Name+'IDF', pdf=True, png=False, PathFigs=Path_IDF,)
-    IDF = pd.DataFrame(Idq, index=dP, columns=Tr)
-    IDF.to_csv(os.path.join(Path_IDF,Estaciones[i]))
+# for i in range(len(Estaciones)):
+#     Name = Estaciones[i].split('.csv')[0]
+#
+#     data = MaxAnual(Estaciones[i], Path_series)
+#     dP, Idq = Pulgarin(data, Tr, theta)
+#     GraphIDF(Idq, dP, Tr, cmap_name='jet', name=Name+'IDF', pdf=True, png=False, PathFigs=Path_IDF,)
+#     IDF = pd.DataFrame(Idq, index=dP, columns=Tr)
+#     IDF.to_csv(os.path.join(Path_IDF,Estaciones[i]))
 
 
 # Compare Wilches with VargasDiazGranados
 Tr = np.array([2,3,5,10,25,50,100])
 
-# Nombre = 'ESPERANZA LA [25021340]'
+Nombre = 'ESPERANZA LA [25021340]'
 # Nombre = 'TORNO EL HACIENDA [25021470]'
-Nombre = 'CARMEN DE BOLIVAR [29015020]'
+# Nombre = 'CARMEN DE BOLIVAR [29015020]'
 
 # IDEAM params
 C1 = [6798.308,9998.576,14882.323,23468.705,39184.485,55085.160,75025.218]
 X0 = [27.895,32.735,37.828,43.764,50.544,55.091,59.234]
 C2 = [1.112,1.159,1.207,1.263,1.325,1.366,1.403]
+
+# data = MaxAnual(Nombre+'.csv', Path_series)
+#
+# from math import factorial as fact
+# x = np.sort(data)
+# n = len(x)
+# ks = np.array([0, 1])
+# Mk = np.zeros(len(ks))
+#
+# for j in range(len(ks)):
+#     k = ks[j]
+#     N = fact(n-1)/(fact(k)*fact(n-1-k))
+#     Mi = 0.
+#     for i in range(n-k):
+#         Ni = fact(n-(i+1))/(fact(k)*fact(n-(i+1)-k))
+#         # print (Ni)
+#         Mi = x[i]*Ni
+#         Mk[j] = Mk[j] + Mi
+#     Mk[j] = (1./n)*Mk[j]/N
+#
+# alphad = (Mk[0] - 2.*Mk[1])/np.log(2.)
+# mud = Mk[0] - 0.5772*alphad
+#
+# y = -np.log(-np.log(1.-1./Tr))
+#
+# ################################   Duration   ##############################
+#
+# dlim1 = 1440
+# dlim2 = 60
+# dlim3 = 5
+# d1 = np.arange(dlim2, dlim1, 5)
+# d2 = np.arange(dlim3, dlim2, 2.5)
+#
+# # IDF curves
+# Idq1 = np.zeros((len(d1), len(Tr)))
+# Idq2 = np.zeros((len(d2), len(Tr)))
+#
+# for i in range(len(Tr)):
+#     Idq1[:,i] = (mud + alphad*y[i])*(d1/1440.)**theta
+#     Idq2[:,i] = Idq1[0,i]*((32.4/d2**0.75) - (30.00/d2))
+#
+# d = np.hstack((d2, d1))
+# Idq = np.vstack((Idq2, Idq1))
+#
+# X1 = Idq1[0,:]
+# X2 = mud + alphad*y
 
 for w in np.arange(1,8):
     data = MaxAnual(Nombre+'.csv', Path_series, window=w)
