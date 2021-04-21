@@ -140,9 +140,10 @@ def MEIdata():
 
     return MEI
 
-Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
+# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
 # Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
 # Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanSedimentos'))
+Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Datos/ENSO_P'))
 Path_out = os.path.abspath(os.path.join(os.path.dirname(__file__), 'ENSO'))
 
 
@@ -158,6 +159,7 @@ if Est_path.endswith('CleanSedimentos'):
     Estaciones = Listador(Est_path, inicio='Trans',final='.csv')
 else :
     Estaciones = Listador(Est_path,final='.csv')
+
 rezagos = 24
 ONI_r = pd.DataFrame([], columns=np.arange(rezagos+1))
 ONI_s = pd.DataFrame([], columns=np.arange(rezagos+1))
@@ -208,11 +210,15 @@ for i in range(len(Estaciones)):
     if Est_path.endswith('CleanSedimentos'):
         Est  = Estaciones[i].split('_')[1].split('.csv')[0]+'_Sedimentos'
         lab  = 'Anomalia transporte'
+    elif Est_path.endswith('ENSO_P'):
+        Est  = Estaciones[i].split('.csv')[0]
+        lab  = 'Anomalia precipitación'
     else:
         Meta = pd.read_csv(os.path.join(Est_path, Estaciones[i].split('.')[0]+'.meta'),index_col=0)
         Name = Meta.iloc[0].values[0]
         Est  = Name+'Caudal' if Meta.iloc[-4].values[0]=='CAUDAL' else Name+'Nivel'
         lab  = 'Anomalia Caudal' if Meta.iloc[-4].values[0]=='CAUDAL' else'Anomalia Nivel'
+
     if Est_path.endswith('CleanNiveles'):
         Est  = Name+'NR'
         lab  = 'Anomalia nivel real'
@@ -220,6 +226,12 @@ for i in range(len(Estaciones)):
     if Est_path.endswith('CleanSedimentos'):
         serie = pd.read_csv(os.path.join(Est_path, Estaciones[i]), index_col=0)
         serie.index = pd.DatetimeIndex(serie.index)
+    elif Est_path.endswith('ENSO_P'):
+        serie = pd.read_csv(os.path.join(Est_path, Estaciones[i]), index_col=0)
+        serie.index = pd.DatetimeIndex(serie.index)
+        serie[serie==99999] = np.nan
+        serie = serie.dropna()
+
     else:
         serie = Read.EstacionCSV_pd(Estaciones[i], Est, path=Est_path)
         if Estaciones[i].endswith('N.csv') == False:
@@ -305,6 +317,8 @@ if Est_path.endswith('CleanNiveles'):
     sufix = 'NR'
 elif Est_path.endswith('CleanSedimentos'):
     sufix = 'Sed'
+elif Est_path.endswith('ENSO_P'):
+    sufix = 'PPT'
 else:
     sufix = ''
 ONI_r.to_csv(os.path.join(Path_out,f'ONIcorrelation_revisa_{sufix}.csv'))

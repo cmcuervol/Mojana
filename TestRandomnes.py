@@ -245,6 +245,11 @@ Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles
 
 Estaciones = Listador(Est_path,final='.csv')
 
+# if Est_path.endswith('CleanData') == True:
+#     Estaciones = ['25017010.csv']
+# elif Est_path.endswith('CleanNiveles') == True:
+#     Estaciones = ['25017010NR.csv']
+
 Pruebas = ['Rachas', 'PuntoCambio', 'Spearman', 'Anderson','MannKendall']
 Test = pd.DataFrame([], columns=Pruebas)
 Outl = pd.DataFrame([], columns=['outlier_inf','outlier_sup'])

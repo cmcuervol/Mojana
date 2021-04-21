@@ -150,7 +150,7 @@ C2 = [1.112,1.159,1.207,1.263,1.325,1.366,1.403]
 # dlim2 = 60
 # dlim3 = 5
 # d1 = np.arange(dlim2, dlim1, 5)
-# d2 = np.arange(dlim3, dlim2, 2.5)
+# d2 = np.arange(dlim3, ddlim2, 2.5)
 #
 # # IDF curves
 # Idq1 = np.zeros((len(d1), len(Tr)))
