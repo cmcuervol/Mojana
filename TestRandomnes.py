@@ -239,16 +239,16 @@ def MannKendall_modified(Serie, rezagos=None, significance=5E-2):
     return test
 
 
-# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
-Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
+Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanData'))
+# Est_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'CleanNiveles'))
 
 
 Estaciones = Listador(Est_path,final='.csv')
 
-# if Est_path.endswith('CleanData') == True:
-#     Estaciones = ['25017010.csv']
-# elif Est_path.endswith('CleanNiveles') == True:
-#     Estaciones = ['25017010NR.csv']
+if Est_path.endswith('CleanData') == True:
+    Estaciones = ['25017010.csv']
+elif Est_path.endswith('CleanNiveles') == True:
+    Estaciones = ['25017010NR.csv']
 
 Pruebas = ['Rachas', 'PuntoCambio', 'Spearman', 'Anderson','MannKendall']
 Test = pd.DataFrame([], columns=Pruebas)
