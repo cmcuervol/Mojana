@@ -52,7 +52,7 @@ def GraphIDF(Int, duration, frecuency, cmap_name='jet', name='IDF', pdf=True, pn
     # define some random data that emulates your indeded code:
     NCURVES = len(frecuency)
     plt.close('all')
-    fig = plt.figure(figsize=(12.8,8))
+    fig = plt.figure(figsize=(9.6,6))
     ax = fig.add_subplot(111)
     cNorm  = colors.Normalize(vmin=0, vmax=NCURVES)
     scalarMap = cm.ScalarMappable(norm=cNorm, cmap=plt.get_cmap(cmap_name))
@@ -98,22 +98,22 @@ Estaciones = Listador(Path_series, final='.csv')
 Tr = np.array([2.33, 5, 10, 25, 50, 100, 200, 500, 1000])
 theta = -0.82
 #
-# for i in range(len(Estaciones)):
-#     Name = Estaciones[i].split('.csv')[0]
-#
-#     data = MaxAnual(Estaciones[i], Path_series)
-#     dP, Idq = Pulgarin(data, Tr, theta)
-#     GraphIDF(Idq, dP, Tr, cmap_name='jet', name=Name+'IDF', pdf=True, png=False, PathFigs=Path_IDF,)
-#     IDF = pd.DataFrame(Idq, index=dP, columns=Tr)
-#     IDF.to_csv(os.path.join(Path_IDF,Estaciones[i]))
+for i in range(len(Estaciones)):
+    Name = Estaciones[i].split('.csv')[0]
+
+    data = MaxAnual(Estaciones[i], Path_series)
+    dP, Idq = Pulgarin(data, Tr, theta)
+    GraphIDF(Idq, dP, Tr, cmap_name='jet', name=Name+'IDF', pdf=True, png=False, PathFigs=Path_IDF,)
+    IDF = pd.DataFrame(Idq, index=dP, columns=Tr)
+    IDF.to_csv(os.path.join(Path_IDF,Estaciones[i]))
 
 
 # Compare Wilches with VargasDiazGranados
 Tr = np.array([2,3,5,10,25,50,100])
 
-Nombre = 'ESPERANZA LA [25021340]'
+# Nombre = 'ESPERANZA LA [25021340]'
 # Nombre = 'TORNO EL HACIENDA [25021470]'
-# Nombre = 'CARMEN DE BOLIVAR [29015020]'
+Nombre = 'CARMEN DE BOLIVAR [29015020]'
 
 # IDEAM params
 C1 = [6798.308,9998.576,14882.323,23468.705,39184.485,55085.160,75025.218]
@@ -202,7 +202,7 @@ for w in np.arange(1,8):
     # define some random data that emulates your indeded code:
     NCURVES = len(Tr)
     plt.close('all')
-    fig = plt.figure(figsize=(12.8,8))
+    fig = plt.figure(figsize=(9.6,6))
     ax = fig.add_subplot(111)
     cNorm  = colors.Normalize(vmin=0, vmax=NCURVES)
     scalarMap = cm.ScalarMappable(norm=cNorm, cmap=plt.get_cmap(cmap_name))

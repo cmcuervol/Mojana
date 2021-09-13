@@ -273,7 +273,9 @@ for i in range(len(Estaciones)):
         Dat.index = [dt.datetime.strptime(fecha.strftime("%Y-%m-%d") , "%Y-%d-%m") for fecha in Dat.index]
     except:
         pass
-    Dat  = Dat.dropna()
+
+    Dat = Dat['1994-01-01':]
+    Dat = Dat.dropna()
     # dat =  Dat.values.ravel()
     # yearly  = Dat.groupby(lambda y: y.year).max().values.ravel()
     mensual = Dat.groupby(lambda m: (m.year,m.month)).max()
